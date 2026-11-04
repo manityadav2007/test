@@ -1,7 +1,4 @@
-/* Custom adjustments for Instagram login UI */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
+/* Custom enhancements for Instagram UI Login clone */
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -11,7 +8,7 @@ input:-webkit-autofill:active {
     -webkit-text-fill-color: #262626 !important;
 }
 
-/* Phone screenshot transition classes */
-.phone-slide {
-    transition: opacity 1.5s ease-in-out;
+/* Subtle transition for interactive elements */
+button, input, a {
+    transition: all 0.2s ease-in-out;
 }
