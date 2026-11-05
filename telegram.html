@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Web • Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-[#0e1621] text-[#f5f5f5] font-['Roboto'] min-h-screen flex flex-col justify-between items-center p-4 relative overflow-x-hidden">
+  
+  <!-- Top Header Navigation -->
+  <header class="w-full max-w-4xl flex items-center justify-between py-4 px-2">
+    <a href="index.html" class="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors text-sm font-medium group">
+      <div class="w-8 h-8 rounded-full bg-[#17212b] border border-[#242f3d] flex items-center justify-center group-hover:bg-[#242f3d] transition-colors">
+        <svg class="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </div>
+      <span>Back to Instagram</span>
+    </a>
+    
+    <div class="flex items-center space-x-2 text-xs text-slate-400">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>Telegram Web Version 2.4</span>
+    </div>
+  </header>
+
+  <!-- Main Login Card Container -->
+  <main class="w-full max-w-md my-auto relative z-10">
+    <div class="bg-[#17212b] border border-[#242f3d] rounded-2xl p-8 shadow-2xl space-y-6 text-center transition-all duration-300" id="telegramCard">
+      
+      <!-- Logo & Header Title -->
+      <div class="flex flex-col items-center space-y-3">
+        <div class="w-20 h-20 bg-[#3390ec] rounded-full flex items-center justify-center shadow-lg shadow-[#3390ec]/30 transform hover:scale-105 transition-transform cursor-pointer" id="telegramLogo">
+          <svg class="w-11 h-11 fill-current text-white transform -translate-x-0.5 translate-y-0.5" viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.68-.55.84-1.12.52l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.05 5.56-5.02c.24-.22-.05-.34-.37-.13l-6.87 4.33-2.96-.92c-.64-.2-.65-.64.13-.95l11.57-4.46c.53-.19 1 .13.89.92z"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-wide" id="cardTitle">Sign in to Telegram</h1>
+        <p class="text-xs text-[#7f91a4] max-w-xs" id="cardSubtitle">Please confirm your country code and enter your phone number.</p>
+      </div>
+
+      <!-- VIEW 1: Phone Number Input Form -->
+      <div id="phoneView" class="space-y-4 pt-2 transition-opacity duration-300">
+        <div class="text-left space-y-1">
+          <label class="text-xs text-[#7f91a4] font-medium px-1">Country</label>
+          <select id="countrySelect" class="w-full bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none cursor-pointer transition-colors">
+            <option value="+1">United States (+1)</option>
+            <option value="+44">United Kingdom (+44)</option>
+            <option value="+91" selected>India (+91)</option>
+            <option value="+49">Germany (+49)</option>
+            <option value="+33">France (+33)</option>
+            <option value="+81">Japan (+81)</option>
+            <option value="+55">Brazil (+55)</option>
+          </select>
+        </div>
+
+        <div class="text-left space-y-1">
+          <label class="text-xs text-[#7f91a4] font-medium px-1">Phone Number</label>
+          <div class="flex space-x-2">
+            <input type="text" id="countryCodeInput" value="+91" readonly class="w-20 bg-[#0e1621] border border-[#242f3d] text-center text-slate-300 font-semibold rounded-xl px-2 py-3 text-sm focus:outline-none" />
+            <input type="tel" id="phoneInput" placeholder="98765 43210" class="flex-1 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors tracking-wider" />
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 pt-2">
+          <input type="checkbox" id="keepSigned" checked class="w-4 h-4 rounded bg-[#0e1621] border-[#242f3d] text-[#3390ec] focus:ring-0 cursor-pointer" />
+          <label for="keepSigned" class="text-xs text-[#7f91a4] cursor-pointer selection-none">Keep me signed in</label>
+        </div>
+
+        <button id="sendCodeBtn" class="w-full py-3.5 bg-[#3390ec] hover:bg-[#2b7cce] text-white font-medium text-sm rounded-xl shadow-lg shadow-[#3390ec]/25 uppercase tracking-wider transition-all transform active:scale-[0.99] cursor-pointer mt-4">
+          NEXT
+        </button>
+
+        <div class="pt-3">
+          <button id="toggleQrBtn" class="text-xs font-semibold text-[#3390ec] hover:underline cursor-pointer uppercase tracking-wider">
+            LOG IN BY QR CODE
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 2: QR Code Login -->
+      <div id="qrView" class="hidden space-y-5 py-2 transition-opacity duration-300">
+        <div class="bg-white p-4 rounded-2xl w-48 h-48 mx-auto flex items-center justify-center shadow-inner relative group">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://telegram.org" alt="Telegram QR Code" class="w-full h-full object-contain rounded-lg" />
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <span class="text-xs text-white bg-[#3390ec] px-3 py-1.5 rounded-full font-medium shadow">Scan with Telegram</span>
+          </div>
+        </div>
+        <p class="text-xs text-[#7f91a4] leading-relaxed max-w-xs mx-auto">
+          1. Open Telegram on your phone<br />
+          2. Go to <strong>Settings</strong> &gt; <strong>Devices</strong> &gt; <strong>Link Desktop Device</strong><br />
+          3. Point your phone at this screen to confirm
+        </p>
+        <button id="togglePhoneBtn" class="text-xs font-semibold text-[#3390ec] hover:underline cursor-pointer uppercase tracking-wider block mx-auto pt-2">
+          LOG IN BY PHONE NUMBER
+        </button>
+      </div>
+
+      <!-- VIEW 3: Verification Code Input Step -->
+      <div id="codeView" class="hidden space-y-5 pt-2 transition-opacity duration-300">
+        <div class="bg-[#0e1621] p-4 rounded-xl border border-[#242f3d]">
+          <p class="text-xs text-slate-300">We've sent a code to <span id="displayPhone" class="font-bold text-[#3390ec]">+91 98765 43210</span></p>
+        </div>
+
+        <div class="flex justify-center space-x-2 py-2" id="otpContainer">
+          <input type="text" maxlength="1" class="otp-box w-11 h-13 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-center text-xl font-bold text-white rounded-xl focus:outline-none transition-colors" />
+          <input type="text" maxlength="1" class="otp-box w-11 h-13 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-center text-xl font-bold text-white rounded-xl focus:outline-none transition-colors" />
+          <input type="text" maxlength="1" class="otp-box w-11 h-13 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-center text-xl font-bold text-white rounded-xl focus:outline-none transition-colors" />
+          <input type="text" maxlength="1" class="otp-box w-11 h-13 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-center text-xl font-bold text-white rounded-xl focus:outline-none transition-colors" />
+          <input type="text" maxlength="1" class="otp-box w-11 h-13 bg-[#0e1621] border border-[#242f3d] focus:border-[#3390ec] text-center text-xl font-bold text-white rounded-xl focus:outline-none transition-colors" />
+        </div>
+
+        <p class="text-xs text-[#7f91a4]">Resend code in <span id="timer" class="text-slate-200 font-medium">00:45</span></p>
+
+        <button id="backToPhoneBtn" class="text-xs text-[#7f91a4] hover:text-white transition-colors block mx-auto pt-2 cursor-pointer">
+          Edit Phone Number
+        </button>
+      </div>
+
+      <!-- VIEW 4: Logged In Success View -->
+      <div id="successView" class="hidden space-y-4 py-4 transition-opacity duration-300">
+        <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30 animate-bounce">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white">Authentication Successful!</h2>
+        <p class="text-xs text-slate-400">Welcome back. Your Telegram session has been authorized.</p>
+        <a href="index.html" class="inline-block px-6 py-2.5 bg-[#3390ec] hover:bg-[#2b7cce] text-white font-medium text-xs rounded-xl shadow-lg transition-all cursor-pointer mt-2">
+          Return to Main Page
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-4xl text-center py-4 text-xs text-[#7f91a4] relative z-10">
+    <p>Telegram Web App &bull; Powered by Open Telegram API Simulation</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
