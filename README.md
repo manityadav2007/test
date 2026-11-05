@@ -1,9 +1,25 @@
-# Instagram Login Page Clone
+# Instagram & Telegram Login Authentication Suite
 
-A pixel-perfect, responsive clone of the modern Instagram login web page built with HTML5, Tailwind CSS, and vanilla JavaScript.
+A responsive, modern web interface featuring Instagram login and a seamlessly integrated Telegram Web login redirect experience.
 
 ## Features
 
-- **Inline SVG Graphics**: Replaced all potential broken external image links with crisp, scalable inline SVGs for the Instagram logo, Facebook icon, and App Store / Google Play store badges.
-- **Robust Phone Mockup**: Embedded a high-quality Unsplash vertical image slideshow inside a styled CSS phone mockup container with automatic fading transitions every 4 seconds.
-- **Interactive Form Validation & States**: Dynamic input focus styling, automated floating label animations, and secure show/hide password toggle. The Log In button dynamically enables when credentials meet validation rules.
+- **Continue to Telegram Action**: A highlighted, branded "Continue to Telegram" button on the main Instagram login card.
+- **Dedicated Telegram Web Login Page (`telegram.html`)**:
+  - Sleek Telegram dark theme UI styling (#0e1621 & #17212b).
+  - **Dual Sign-in Options**: Seamless tab switching between Phone Number login and QR Code login.
+  - **Interactive Country Selector**: Automatically populates country dial codes.
+  - **Verification Code Simulation**: Interactive 5-digit PIN input with focus auto-advance and countdown timer.
+  - **Responsive Design**: Fits perfectly across all mobile devices, tablets, and desktop displays.
+- **Seamless Navigation**: Includes one-click back navigation between Instagram and Telegram screens.
+
+## File Structure
+
+- `index.html`: Instagram login landing page featuring the "Continue to Telegram" button.
+- `telegram.html`: Full-featured Telegram Web sign-in portal.
+- `app.js`: Interactivity, form flow simulation, OTP verification, and UI state toggling.
+- `style.css`: Custom animations, keyframes, scrollbar aesthetics, and component enhancements.
+
+## How to Run
+
+Simply open `index.html` in any modern web browser or serve via a local web server (e.g. Live Server).
