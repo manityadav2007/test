@@ -6,71 +6,138 @@
     <title>Sakura Sanctuary — Golden Hour Edition</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
-    <!-- Three.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Tailwind CSS for UI overlay styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="bg-[#0d0908] text-[#f4efe6] font-['Plus_Jakarta_Sans',sans-serif] overflow-hidden select-none">
+
     <!-- Loader Overlay -->
-    <div id="loader" class="loader">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <h2>Entering Sakura Sanctuary</h2>
-            <p id="loader-status">Generating golden hour environment...</p>
-            <div id="error-container" class="error-container hidden">
-                <p id="error-message" class="error-msg"></p>
-                <button id="reload-btn" onclick="window.location.reload()">Try Again</button>
+    <div id="loader" class="fixed inset-0 z-50 bg-[#0d0908] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="relative flex items-center justify-center mb-6">
+            <div class="absolute w-20 h-20 rounded-full border-2 border-[#d97757]/20 border-t-[#d97757] animate-spin"></div>
+            <div class="w-12 h-12 rounded-full bg-[#d97757]/10 flex items-center justify-center text-[#d97757] text-xl">
+                <i class="fa-solid fa-spa"></i>
             </div>
+        </div>
+        <h2 id="loader-title" class="font-['Cormorant_Garamond',serif] text-2xl md:text-3xl font-light tracking-wide text-[#f4efe6] mb-2">Sakura Sanctuary</h2>
+        <p id="loader-subtitle" class="text-xs text-[#a3988c] uppercase tracking-[0.2em] font-medium">Loading Golden Hour 3D Environment...</p>
+        <div id="error-container" class="hidden mt-6 max-w-md text-center px-4">
+            <p id="error-message" class="text-sm text-red-400 mb-4"></p>
+            <button onclick="window.location.reload()" class="px-4 py-2 bg-[#d97757] text-white text-xs uppercase tracking-wider rounded font-medium hover:bg-[#c46545] transition-colors">
+                Retry Experience
+            </button>
         </div>
     </div>
 
-    <!-- Main UI Overlay -->
-    <header class="app-header">
-        <div class="brand">
-            <span class="brand-icon">🌸</span>
-            <h1>Sakura Sanctuary</h1>
+    <!-- Main 3D Canvas -->
+    <canvas id="webgl-canvas" class="fixed inset-0 w-full h-full outline-none"></canvas>
+
+    <!-- UI Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-5 md:px-12 pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-[#1c1412]/80 backdrop-blur-md border border-[#ffffff10] flex items-center justify-center text-[#d97757]">
+                <i class="fa-solid fa-spa text-sm"></i>
+            </div>
+            <div>
+                <h1 class="font-['Cormorant_Garamond',serif] text-lg font-semibold tracking-wide text-[#f4efe6] leading-tight">Sakura Sanctuary</h1>
+                <span class="text-[10px] uppercase tracking-[0.25em] text-[#a3988c] font-medium">Golden Hour</span>
+            </div>
         </div>
-        <nav class="nav-tabs">
-            <button class="tab-btn active" data-tab="sanctuary">Sanctuary</button>
-            <button class="tab-btn" data-tab="meditation">Meditation</button>
-            <button class="tab-btn" data-tab="about">About</button>
-        </nav>
+
+        <div class="pointer-events-auto flex items-center space-x-2 md:space-x-3">
+            <button id="btn-audio" class="w-10 h-10 rounded-full bg-[#1c1412]/60 backdrop-blur-md border border-[#ffffff10] flex items-center justify-center text-[#f4efe6] hover:bg-[#1c1412] hover:border-[#d97757]/40 transition-all duration-300 group" title="Toggle Ambient Audio">
+                <i class="fa-solid fa-volume-high text-xs group-hover:scale-110 transition-transform"></i>
+            </button>
+            <button id="btn-camera" class="w-10 h-10 rounded-full bg-[#1c1412]/60 backdrop-blur-md border border-[#ffffff10] flex items-center justify-center text-[#f4efe6] hover:bg-[#1c1412] hover:border-[#d97757]/40 transition-all duration-300 group" title="Reset Camera View">
+                <i class="fa-solid fa-video text-xs group-hover:scale-110 transition-transform"></i>
+            </button>
+            <button id="btn-info" class="w-10 h-10 rounded-full bg-[#1c1412]/60 backdrop-blur-md border border-[#ffffff10] flex items-center justify-center text-[#f4efe6] hover:bg-[#1c1412] hover:border-[#d97757]/40 transition-all duration-300 group" title="About Sanctuary">
+                <i class="fa-solid fa-circle-info text-xs group-hover:scale-110 transition-transform"></i>
+            </button>
+        </div>
     </header>
 
-    <main>
-        <section id="sanctuary-view" class="view active">
-            <div class="hud-card">
-                <h3>Golden Hour Light</h3>
-                <p>Drag to rotate · Scroll to zoom</p>
-                <div class="controls-group">
-                    <button id="toggle-wind" class="action-btn active">Wind: On</button>
-                    <button id="toggle-time" class="action-btn">Golden Hour</button>
+    <!-- Bottom Interactive Controls & Poem -->
+    <footer class="fixed bottom-0 left-0 right-0 z-30 p-6 md:p-12 pointer-events-none flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="pointer-events-auto bg-[#1c1412]/60 backdrop-blur-md border border-[#ffffff10] rounded-2xl p-4 md:p-5 max-w-sm w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] uppercase tracking-[0.2em] text-[#d97757] font-semibold flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#d97757] animate-pulse"></span>
+                    Atmosphere
+                </span>
+                <span id="fps-counter" class="text-[10px] text-[#a3988c] font-mono">60 FPS</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="window.setLightingMode('golden')" class="lighting-btn py-2 px-3 rounded-lg bg-[#d97757]/20 border border-[#d97757]/40 text-xs text-[#f4efe6] font-medium transition-all">
+                    Golden
+                </button>
+                <button onclick="window.setLightingMode('sakura')" class="lighting-btn py-2 px-3 rounded-lg bg-[#ffffff08] border border-[#ffffff10] text-xs text-[#a3988c] font-medium hover:text-[#f4efe6] transition-all">
+                    Twilight
+                </button>
+                <button onclick="window.setLightingMode('zen')" class="lighting-btn py-2 px-3 rounded-lg bg-[#ffffff08] border border-[#ffffff10] text-xs text-[#a3988c] font-medium hover:text-[#f4efe6] transition-all">
+                    Moonlit
+                </button>
+            </div>
+        </div>
+
+        <div class="pointer-events-auto text-center md:text-right">
+            <p class="font-['Cormorant_Garamond',serif] italic text-base md:text-lg text-[#f4efe6]/90 font-light">
+                &ldquo;Falling cherry blooms,<br class="hidden md:block"> dancing in the golden hush.&rdquo;
+            </p>
+            <span class="text-[10px] uppercase tracking-[0.3em] text-[#a3988c] mt-1 block">Interactive 3D Experience</span>
+        </div>
+    </footer>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#140e0c] border border-[#ffffff15] rounded-3xl p-6 md:p-8 max-w-lg w-full relative shadow-2xl transform scale-95 transition-transform duration-300">
+            <button id="modal-close" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#ffffff08] border border-[#ffffff10] flex items-center justify-center text-[#a3988c] hover:text-[#f4efe6] transition-colors">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-[#d97757]/20 border border-[#d97757]/40 flex items-center justify-center text-[#d97757]">
+                    <i class="fa-solid fa-spa"></i>
+                </div>
+                <div>
+                    <h3 class="font-['Cormorant_Garamond',serif] text-xl font-medium text-[#f4efe6]">About Sakura Sanctuary</h3>
+                    <p class="text-xs text-[#a3988c]">Procedural 3D Environment</p>
                 </div>
             </div>
-        </section>
-        
-        <section id="meditation-view" class="view hidden">
-            <div class="panel">
-                <h2>Zen Breathing</h2>
-                <p>Inhale as the blossoms rise, exhale as they drift.</p>
-                <div class="breathing-circle">
-                    <span id="breath-text">Inhale</span>
+            <p class="text-sm text-[#f4efe6]/80 leading-relaxed mb-6">
+                Sakura Sanctuary is an immersive real-time 3D experience powered by Three.js. It features a procedurally generated cherry blossom tree with thousands of floating petals, dynamic golden hour lighting, soft shadows, and a serene ambient soundscape.
+            </p>
+            <div class="space-y-3 mb-6">
+                <div class="flex items-center text-xs text-[#a3988c] gap-3">
+                    <i class="fa-solid fa-arrow-pointer text-[#d97757] w-4"></i>
+                    <span>Click and drag to rotate the camera view</span>
+                </div>
+                <div class="flex items-center text-xs text-[#a3988c] gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-[#d97757] w-4"></i>
+                    <span>Scroll to zoom in and out of the sanctuary</span>
+                </div>
+                <div class="flex items-center text-xs text-[#a3988c] gap-3">
+                    <i class="fa-solid fa-sliders text-[#d97757] w-4"></i>
+                    <span>Use bottom controls to switch atmospheric lighting</span>
                 </div>
             </div>
-        </section>
+            <button id="modal-action" class="w-full py-3 bg-[#d97757] hover:bg-[#c46545] text-white font-medium text-xs uppercase tracking-wider rounded-xl transition-colors">
+                Enter Sanctuary
+            </button>
+        </div>
+    </div>
 
-        <section id="about-view" class="view hidden">
-            <div class="panel">
-                <h2>About the Sanctuary</h2>
-                <p>A procedural 3D immersive experience crafted with Three.js. Experience infinite tranquil moments under eternal cherry blossoms.</p>
-            </div>
-        </section>
-    </main>
-
-    <!-- 3D Canvas Container -->
-    <div id="canvas-container"></div>
-
+    <!-- Three.js and OrbitControls CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GSAP for UI animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Main Application Script -->
     <script src="app.js"></script>
 </body>
 </html>
