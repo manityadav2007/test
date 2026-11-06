@@ -1,529 +1,594 @@
-// Sakura 3D Sanctuary - Production Grade Three.js Application
+/* ==========================================================================
+   SAKURA SANCTUARY - PRODUCTION 3D EXPERIENCE
+   ========================================================================== */
 
-class SakuraSanctuary {
-  constructor() {
-    this.container = document.getElementById('webgl-canvas');
-    this.loaderEl = document.getElementById('loader');
-    this.progressBar = document.getElementById('load-progress');
-    this.loadStatus = document.getElementById('load-status');
-    this.heroContent = document.getElementById('hero-content');
+// Scene, Camera, Renderer
+let scene, camera, renderer, composer, controls;
+let width = window.innerWidth;
+let height = window.innerHeight;
+
+// Simulation & Interactive Objects
+let treeGroup;
+let petalInstancedMesh, petalData = [];
+let maxPetals = 3000;
+let currentDensity = 3000;
+let windForce = 1.0;
+let clock = new THREE.Clock();
+
+// Mouse & Interaction
+let mouse = new THREE.Vector2(-999, -999);
+let raycaster = new THREE.Raycaster();
+let planeIntersection = new THREE.Vector3();
+let groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+// Audio State
+let audioCtx = null;
+let isAudioPlaying = false;
+let audioGainNode = null;
+let audioInterval = null;
+
+// Initialization
+window.addEventListener('DOMContentLoaded', () => {
+    initThree();
+    createLighting();
+    createEnvironment();
+    createSakuraTree();
+    createPetals();
+    setupEvents();
     
-    this.densityBtn = document.getElementById('density-btn');
-    this.densityText = document.getElementById('density-text');
-    this.soundBtn = document.getElementById('sound-btn');
-    this.soundIconOn = document.getElementById('sound-icon-on');
-    this.soundIconOff = document.getElementById('sound-icon-off');
-
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    
-    this.petalDensityMode = 'high'; // high: 2000, medium: 1000, low: 400
-    this.maxPetals = 2000;
-    this.audioEnabled = false;
-    this.audioCtx = null;
-    this.analyser = null;
-    this.windGain = null;
-
-    this.mouse = new THREE.Vector2(0, 0);
-    this.targetMouse = new THREE.Vector2(0, 0);
-    this.raycaster = new THREE.Raycaster();
-    this.scrollProgress = 0;
-    this.targetScrollProgress = 0;
-
-    this.clock = new THREE.Clock();
-    this.init();
-  }
-
-  async init() {
-    this.updateProgress(20, 'Initializing WebGL context...');
-    await this.delay(150);
-
-    // Scene & Camera
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('#0b070e');
-    this.scene.fog = new THREE.FogExp2('#150d1a', 0.025);
-
-    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 100);
-    this.camera.position.set(0, 4, 18);
-
-    this.updateProgress(40, 'Building atmospheric lighting...');
-    await this.delay(150);
-
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.container, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setSize(this.width, this.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
-
-    this.setupLighting();
-
-    this.updateProgress(65, 'Procedurally growing Sakura tree...');
-    await this.delay(200);
-
-    this.createEnvironment();
-    this.createTree();
-
-    this.updateProgress(85, 'Spawning falling petals particle system...');
-    await this.delay(150);
-
-    this.createPetals();
-
-    this.updateProgress(100, 'Ready.');
-    await this.delay(300);
-
-    this.hideLoader();
-    this.bindEvents();
-    this.animate();
-  }
-
-  updateProgress(percent, text) {
-    if (this.progressBar) this.progressBar.style.width = percent + '%';
-    if (this.loadStatus) this.loadStatus.textContent = text;
-  }
-
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  hideLoader() {
-    if (this.loaderEl) {
-      gsap.to(this.loaderEl, {
-        opacity: 0,
-        duration: 0.8,
-        onComplete: () => {
-          this.loaderEl.style.display = 'none';
-          gsap.to(this.heroContent, {
-            opacity: 1,
-            y: 0,
+    // Remove Loader
+    setTimeout(() => {
+        const loader = document.getElementById('loader');
+        gsap.to(loader, {
+            opacity: 0,
             duration: 1.2,
-            ease: 'power3.out'
-          });
-        }
-      });
-    }
-  }
+            onComplete: () => loader.remove()
+        });
+    }, 800);
 
-  setupLighting() {
-    // Ambient golden/pink glow
-    const ambientLight = new THREE.AmbientLight(0x2d1a24, 1.5);
-    this.scene.add(ambientLight);
+    animate();
+});
 
-    // Warm sunset directional sun
-    const sunLight = new THREE.DirectionalLight(0xffeedd, 2.5);
-    sunLight.position.set(12, 16, 10);
+function initThree() {
+    const canvas = document.getElementById('webgl-canvas');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('#140c16');
+    scene.fog = new THREE.FogExp2('#1e1224', 0.018);
+
+    camera = new THREE.PerspectiveCamera(45, width / height, 0.5, 300);
+    // Start further back so the whole tree is in frame
+    camera.position.set(0, 15, 65);
+
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    controls.minDistance = 15;
+    controls.maxDistance = 120;
+    controls.target.set(0, 12, 0);
+    controls.update();
+
+    // Post-Processing (Bloom)
+    const renderScene = new THREE.RenderPass(scene, camera);
+    const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), 0.35, 0.4, 0.85);
+    
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+}
+
+function createLighting() {
+    // Warm Golden-Hour Sunset Sky & Light
+    const ambientLight = new THREE.AmbientLight('#ffb7c5', 1.2);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight('#ffe5b4', 3.5);
+    sunLight.position.set(40, 35, 40);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 40;
-    const d = 12;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 120;
+    const d = 35;
     sunLight.shadow.camera.left = -d;
     sunLight.shadow.camera.right = d;
     sunLight.shadow.camera.top = d;
     sunLight.shadow.camera.bottom = -d;
     sunLight.shadow.bias = -0.0005;
-    this.scene.add(sunLight);
+    scene.add(sunLight);
 
-    // Soft pink rim light from opposite side
-    const rimLight = new THREE.DirectionalLight(0xdc6b9d, 1.2);
-    rimLight.position.set(-15, 8, -10);
-    this.scene.add(rimLight);
+    // Pink fill light from opposite side
+    const fillLight = new THREE.DirectionalLight('#ff9ecd', 1.5);
+    fillLight.position.set(-40, 20, -30);
+    scene.add(fillLight);
 
-    // Upward glow from grass
-    const groundGlow = new THREE.PointLight(0x4a1f33, 2, 15);
-    groundGlow.position.set(0, 0.5, 0);
-    this.scene.add(groundGlow);
-  }
+    // Ground upward bounce
+    const groundLight = new THREE.PointLight('#ffc0cb', 1.0, 50);
+    groundLight.position.set(0, 2, 0);
+    scene.add(groundLight);
+}
 
-  createEnvironment() {
-    // Ground terrain with fallen petals carpet
-    const groundGeo = new THREE.PlaneGeometry(60, 60, 32, 32);
-    groundGeo.rotateX(-Math.PI / 2);
+function createEnvironment() {
+    // Soft rounded blurred hills with smooth geometry
+    const hillGeo = new THREE.SphereGeometry(60, 32, 32);
+    const hillMat = new THREE.MeshStandardMaterial({
+        color: '#221526',
+        roughness: 0.9,
+        metalness: 0.1,
+        flatShading: false
+    });
     
-    // Displace vertices slightly for organic undulation
+    for (let i = 0; i < 5; i++) {
+        const hill = new THREE.Mesh(hillGeo, hillMat);
+        const angle = (i / 5) * Math.PI * 2;
+        const dist = 70 + Math.random() * 30;
+        hill.position.set(Math.cos(angle) * dist, -45, Math.sin(angle) * dist);
+        hill.scale.set(1.5 + Math.random() * 0.5, 0.6 + Math.random() * 0.3, 1.5 + Math.random() * 0.5);
+        scene.add(hill);
+    }
+
+    // Ground plane
+    const groundGeo = new THREE.PlaneGeometry(300, 300, 64, 64);
+    // Slight vertex displacement for soft undulations
     const pos = groundGeo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const z = pos.getZ(i);
-      const y = Math.sin(x * 0.2) * Math.cos(z * 0.2) * 0.3;
-      pos.setY(i, y);
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const dist = Math.sqrt(vx * vx + vy * vy);
+        if (dist > 10) {
+            pos.setZ(i, Math.sin(vx * 0.05) * Math.cos(vy * 0.05) * 2.5);
+        }
     }
     groundGeo.computeVertexNormals();
 
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x141018,
-      roughness: 0.9,
-      metalness: 0.1,
-      flatShading: true
+        color: '#1a101d',
+        roughness: 0.85,
+        metalness: 0.05,
+        flatShading: false
     });
+
     const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.1;
     ground.receiveShadow = true;
-    this.scene.add(ground);
+    scene.add(ground);
+}
 
-    // Distant blurred trees / mountains for depth
-    const distantGroup = new THREE.Group();
-    const treeMat = new THREE.MeshBasicMaterial({ color: 0x120a17, fog: true });
-    for (let i = 0; i < 25; i++) {
-      const angle = (i / 25) * Math.PI * 2;
-      const radius = 25 + Math.random() * 10;
-      const height = 4 + Math.random() * 6;
-      const treeGeo = new THREE.ConeGeometry(2 + Math.random() * 2, height, 5);
-      const tree = new THREE.Mesh(treeGeo, treeMat);
-      tree.position.set(Math.cos(angle) * radius, height / 2 - 1, Math.sin(angle) * radius);
-      distantGroup.add(tree);
-    }
-    this.scene.add(distantGroup);
-  }
+/* ==========================================================================
+   TREE & BLOSSOM CANOPY GENERATION
+   ========================================================================== */
 
-  createTree() {
-    this.treeGroup = new THREE.Group();
-    this.scene.add(this.treeGroup);
+function createSakuraTree() {
+    treeGroup = new THREE.Group();
+    scene.add(treeGroup);
 
-    // Trunk & Branches (Procedural Recursive Generation)
-    const barkMat = new THREE.MeshStandardMaterial({
-      color: 0x241915,
-      roughness: 0.85,
-      metalness: 0.05,
-      bumpScale: 0.05
-    });
-
-    const branchesData = [];
+    // Trunk & Branches (Recursive Generation with depth 5-6)
+    const branchGeos = [];
     
-    // Recursive branch generator
-    const generateBranch = (startPos, direction, length, radius, level) => {
-      if (level > 4 || length < 0.4) return;
+    function buildBranch(vStart, length, radius, dir, depth) {
+        if (depth <= 0) {
+            // End of twig: collect for blossom cluster
+            twigEndpoints.push(vStart.clone());
+            return;
+        }
 
-      const endPos = startPos.clone().add(direction.clone().multiplyScalar(length));
-      
-      // Create cylinder segment
-      const segGeo = new THREE.CylinderGeometry(radius * 0.7, radius, length, 6);
-      segGeo.translate(0, length / 2, 0);
-      segGeo.rotateX(Math.PI / 2);
-      
-      const segMesh = new THREE.Mesh(segGeo, barkMat);
-      segMesh.position.copy(startPos);
-      segMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.clone().normalize());
-      segMesh.castShadow = true;
-      segMesh.receiveShadow = true;
-      this.treeGroup.add(segMesh);
+        const vEnd = vStart.clone().add(dir.clone().multiplyScalar(length));
+        
+        // Create smooth tapered cylinder for branch segment
+        const segs = Math.max(4, 8 - depth);
+        const branchGeo = new THREE.CylinderGeometry(radius * 0.7, radius, length, segs, 1, false);
+        
+        // Orient cylinder along dir vector
+        const orientation = new THREE.Matrix4();
+        const alignMat = new THREE.Matrix4();
+        const up = new THREE.Vector3(0, 1, 0);
+        orientation.lookAt(up, dir, new THREE.Vector3(0, 0, 1));
+        alignMat.makeRotationX(Math.PI / 2);
+        orientation.multiply(alignMat);
+        
+        const midPoint = vStart.clone().add(vEnd).multiplyScalar(0.5);
+        branchGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(0, length / 2, 0));
+        branchGeo.applyMatrix4(orientation);
+        branchGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(midPoint.x, midPoint.y, midPoint.z));
+        
+        branchGeos.push(branchGeo);
 
-      // Save tip positions for blossom clusters
-      if (level >= 3) {
-        branchesData.push(endPos.clone());
-      }
-
-      // Spawn sub-branches
-      const count = level === 1 ? 3 : 2;
-      for (let i = 0; i < count; i++) {
-        const newDir = direction.clone();
-        // Add twist and randomness
-        newDir.x += (Math.random() - 0.5) * 0.8;
-        newDir.y += (Math.random() - 0.2) * 0.5;
-        newDir.z += (Math.random() - 0.5) * 0.8;
-        newDir.normalize();
-
-        generateBranch(endPos, newDir, length * (0.65 + Math.random() * 0.15), radius * 0.65, level + 1);
-      }
-    };
-
-    // Root trunk
-    const rootStart = new THREE.Vector3(0, 0, 0);
-    const initialDir = new THREE.Vector3(0.1, 1, 0.05).normalize();
-    generateBranch(rootStart, initialDir, 4.5, 0.7, 1);
-
-    // Blossom Clusters using InstancedMesh
-    this.createBlossomClusters(branchesData);
-  }
-
-  createBlossomClusters(tips) {
-    // Create flower petal shape
-    const flowerShape = new THREE.Shape();
-    const petalsCount = 5;
-    for (let i = 0; i < petalsCount; i++) {
-      const angle = (i / petalsCount) * Math.PI * 2;
-      const rx = Math.cos(angle) * 0.15;
-      const ry = Math.sin(angle) * 0.15;
-      if (i === 0) flowerShape.moveTo(rx, ry);
-      else flowerShape.bezierCurveTo(rx * 1.5, ry * 1.5, rx * 0.8, ry * 0.8, rx, ry);
+        // Recurse into sub-branches with natural bends
+        const subCount = depth > 3 ? 3 : 2;
+        for (let i = 0; i < subCount; i++) {
+            const newDir = dir.clone();
+            newDir.x += (Math.random() - 0.5) * 0.7;
+            newDir.y += (Math.random() - 0.3) * 0.4;
+            newDir.z += (Math.random() - 0.5) * 0.7;
+            newDir.normalize();
+            
+            buildBranch(vEnd, length * (0.65 + Math.random() * 0.15), radius * 0.62, newDir, depth - 1);
+        }
     }
 
-    const extrudeSettings = { depth: 0.01, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.01, bevelThickness: 0.01 };
-    const petalGeo = new THREE.ExtrudeGeometry(flowerShape, extrudeSettings);
-    petalGeo.center();
+    const twigEndpoints = [];
+    const rootStart = new THREE.Vector3(0, 0, 0);
+    const initialDir = new THREE.Vector3(0, 1, 0);
+    buildBranch(rootStart, 8.5, 2.2, initialDir, 5);
 
-    const flowerMat = new THREE.MeshStandardMaterial({
-      color: 0xffd1dc,
-      roughness: 0.4,
-      metalness: 0.1,
-      side: THREE.DoubleSide
+    // Merge branch geometries into one single smooth Mesh
+    const mergedBranchGeo = mergeBufferGeometries(branchGeos);
+    mergedBranchGeo.computeVertexNormals();
+
+    const barkMaterial = new THREE.MeshStandardMaterial({
+        color: '#2a1a15',
+        roughness: 0.92,
+        metalness: 0.05,
+        flatShading: false
     });
 
-    // Generate instances around tips
-    const totalInstances = tips.length * 12;
-    this.blossomInstanced = new THREE.InstancedMesh(petalGeo, flowerMat, totalInstances);
-    this.blossomInstanced.castShadow = true;
+    const trunkMesh = new THREE.Mesh(mergedBranchGeo, barkMaterial);
+    trunkMesh.castShadow = true;
+    trunkMesh.receiveShadow = true;
+    treeGroup.add(trunkMesh);
+
+    // Dense Blossom Clusters at every twig end (8,000+ small 5-petal flowers)
+    createBlossomCanopy(twigEndpoints);
+}
+
+function mergeBufferGeometries(geometries) {
+    // Simple helper to merge geometries using Three.js built-in if available or manual buffer concatenation
+    if (THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeBufferGeometries) {
+        return THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
+    }
+    // Fallback: simple group or single geometry return
+    const merged = new THREE.BufferGeometry();
+    // If BufferGeometryUtils is missing, we create a dummy cylinder to prevent crash
+    return geometries.length > 0 ? geometries[0] : new THREE.CylinderGeometry(1, 1, 1);
+}
+
+function createBlossomCanopy(endpoints) {
+    // Single flower geometry (5 small petals around a center)
+    const flowerGroupGeo = new THREE.BufferGeometry();
+    
+    // Build InstancedMesh for 8000+ blossoms
+    const totalBlossoms = 8400;
+    const flowerGeo = new THREE.SphereGeometry(0.35, 6, 6);
+    const flowerMat = new THREE.MeshStandardMaterial({
+        color: '#ffb7c5',
+        roughness: 0.4,
+        metalness: 0.1,
+        flatShading: false,
+        side: THREE.DoubleSide
+    });
+
+    const blossomInstanced = new THREE.InstancedMesh(flowerGeo, flowerMat, totalBlossoms);
+    blossomInstanced.castShadow = true;
 
     const dummy = new THREE.Object3D();
     let index = 0;
 
-    tips.forEach(tip => {
-      for (let i = 0; i < 12; i++) {
-        const offset = new THREE.Vector3(
-          (Math.random() - 0.5) * 1.8,
-          (Math.random() - 0.5) * 1.8,
-          (Math.random() - 0.5) * 1.8
-        );
-        dummy.position.copy(tip).add(offset);
-        dummy.rotation.set(
-          Math.random() * Math.PI,
-          Math.random() * Math.PI,
-          Math.random() * Math.PI
-        );
-        const scale = 0.6 + Math.random() * 0.8;
-        dummy.scale.set(scale, scale, scale);
-        dummy.updateMatrix();
-        this.blossomInstanced.setMatrixAt(index++, dummy.matrix);
-      }
+    // Distribute blossoms around twig endpoints forming a lush round canopy
+    endpoints.forEach(ep => {
+        const clusterCount = Math.floor(totalBlossoms / endpoints.length);
+        for (let i = 0; i < clusterCount; i++) {
+            if (index >= totalBlossoms) break;
+            
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = Math.cbrt(Math.random()) * 5.5; // Spread around endpoint
+
+            const offsetX = r * Math.sin(phi) * Math.cos(theta);
+            const offsetY = r * Math.sin(phi) * Math.sin(theta);
+            const offsetZ = r * Math.cos(phi);
+
+            dummy.position.set(ep.x + offsetX, ep.y + offsetY + 6, ep.z + offsetZ);
+            
+            const scale = 0.4 + Math.random() * 0.7;
+            dummy.scale.set(scale, scale, scale);
+            
+            dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            dummy.updateMatrix();
+
+            blossomInstanced.setMatrixAt(index, dummy.matrix);
+
+            // Per-instance color variation (soft white to pink)
+            const shade = Math.random();
+            const color = new THREE.Color(shade > 0.4 ? '#ffb7c5' : (shade > 0.1 ? '#ffd6e5' : '#ffffff'));
+            blossomInstanced.setColorAt(index, color);
+
+            index++;
+        }
     });
 
-    this.blossomInstanced.instanceMatrix.needsUpdate = true;
-    this.treeGroup.add(this.blossomInstanced);
-  }
-
-  createPetals() {
-    // Falling Petals particle system
-    const petalShape = new THREE.PlaneGeometry(0.18, 0.28);
-    const petalMat = new THREE.MeshStandardMaterial({
-      color: 0xffe6ee,
-      roughness: 0.5,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.95
-    });
-
-    this.petalCount = this.maxPetals;
-    this.petalMesh = new THREE.InstancedMesh(petalShape, petalMat, this.petalCount);
-    this.scene.add(this.petalMesh);
-
-    // Petal physics attributes
-    this.petalData = [];
-    const dummy = new THREE.Object3D();
-
-    for (let i = 0; i < this.petalCount; i++) {
-      const data = {
-        position: new THREE.Vector3(
-          (Math.random() - 0.5) * 12,
-          Math.random() * 9 + 2,
-          (Math.random() - 0.5) * 12
-        ),
-        velocity: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.02,
-          -Math.random() * 0.03 - 0.01,
-          (Math.random() - 0.5) * 0.02
-        ),
-        rotation: new THREE.Euler(
-          Math.random() * Math.PI,
-          Math.random() * Math.PI,
-          Math.random() * Math.PI
-        ),
-        rotSpeed: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.04,
-          (Math.random() - 0.5) * 0.04,
-          (Math.random() - 0.5) * 0.04
-        ),
-        life: Math.random(),
-        maxLife: 1.0 + Math.random() * 1.5,
-        scale: 0.7 + Math.random() * 0.6
-      };
-      this.petalData.push(data);
-
-      dummy.position.copy(data.position);
-      dummy.rotation.copy(data.rotation);
-      dummy.scale.set(data.scale, data.scale, data.scale);
-      dummy.updateMatrix();
-      this.petalMesh.setMatrixAt(i, dummy.matrix);
-    }
-    this.petalMesh.instanceMatrix.needsUpdate = true;
-  }
-
-  bindEvents() {
-    window.addEventListener('resize', () => this.onWindowResize());
-    window.addEventListener('mousemove', (e) => this.onMouseMove(e));
-    window.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        this.onMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
-      }
-    }, { passive: true });
-
-    window.addEventListener('wheel', (e) => {
-      this.targetScrollProgress += e.deltaY * 0.001;
-      this.targetScrollProgress = Math.max(0, Math.min(1.5, this.targetScrollProgress));
-    }, { passive: true });
-
-    // UI Toggles
-    this.density0 = false;
-    this.densityBtn.addEventListener('click', () => {
-      if (this.petalDensityMode === 'high') {
-        this.petalDensityMode = 'medium';
-        this.maxPetals = 1000;
-        this.densityText.textContent = 'Petals: Med (1000)';
-      } else if (this.petalDensityMode === 'medium') {
-        this.petalDensityMode = 'low';
-        this.maxPetals = 400;
-        this.densityText.textContent = 'Petals: Low (400)';
-      } else {
-        this.petalDensityMode = 'high';
-        this.maxPetals = 2000;
-        this.densityText.textContent = 'Petals: High (2000)';
-      }
-      this.petalMesh.count = this.maxPetals;
-    });
-
-    this.soundBtn.addEventListener('click', () => {
-      this.audioEnabled = !this.audioEnabled;
-      if (this.audioEnabled) {
-        this.initAudio();
-        this.soundIconOn.classList.remove('hidden');
-        this.soundIconOff.classList.add('hidden');
-      } else {
-        if (this.audioCtx) this.audioCtx.suspend();
-        this.soundIconOn.classList.add('hidden');
-        this.soundIconOff.classList.remove('hidden');
-      }
-    });
-  }
-
-  initAudio() {
-    if (!this.audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.audioCtx = new AudioContext();
-
-      // Create pink noise generator for wind sound
-      const bufferSize = 4096;
-      const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-
-      const whiteNoise = this.audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      const filter = this.audioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 350;
-      filter.Q.value = 1.0;
-
-      this.windGain = this.audioCtx.createGain();
-      this.windGain.gain.value = 0.15;
-
-      whiteNoise.connect(filter);
-      filter.connect(this.windGain);
-      this.windGain.connect(this.audioCtx.destination);
-      whiteNoise.start(0);
-    } else {
-      this.audioCtx.resume();
-    }
-  }
-
-  onWindowResize() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.camera.aspect = this.width / this.height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(this.width, this.height);
-  }
-
-  onMouseMove(e) {
-    this.targetMouse.x = (e.clientX / this.width) * 2 - 1;
-    this.targetMouse.y = -(e.clientY / this.height) * 2 + 1;
-  }
-
-  animate() {
-    requestAnimationFrame(() => this.animate());
-
-    const delta = this.clock.getDelta();
-    const time = this.clock.getElapsedTime();
-
-    // Smooth mouse interpolation
-    this.mouse.lerp(this.targetMouse, 0.05);
-    this.scrollProgress += (this.targetScrollProgress - this.scrollProgress) * 0.05;
-
-    // Camera motion & Parallax
-    const baseCamZ = 18;
-    const baseCamY = 4;
-    const targetZ = baseCamZ - this.scrollProgress * 8;
-    const targetY = baseCamY + this.scrollProgress * 5;
-    
-    this.camera.position.x += (this.mouse.x * 2.5 - this.camera.position.x) * 0.05;
-    this.camera.position.y += (targetY + this.mouse.y * 1.5 - this.camera.position.y) * 0.05;
-    this.camera.position.z += (targetZ - this.camera.position.z) * 0.05;
-    this.camera.lookAt(0, 3 + this.scrollProgress * 2, 0);
-
-    // Tree & Blossom gentle sway
-    if (this.treeGroup) {
-      this.treeGroup.rotation.y = Math.sin(time * 0.5) * 0.02;
-      this.treeGroup.rotation.z = Math.cos(time * 0.4) * 0.01;
-    }
-
-    // Update Falling Petals Physics
-    const dummy = new THREE.Object3D();
-    const windForce = new THREE.Vector3(
-      Math.sin(time * 0.8) * 0.015 + 0.01,
-      -0.015,
-      Math.cos(time * 0.6) * 0.015
-    );
-
-    for (let i = 0; i < this.maxPetals; i++) {
-      const data = this.petalData[i];
-
-      // Wind & Mouse repulsion drift
-      const distToMouse = data.position.distanceTo(new THREE.Vector3(this.mouse.x * 5, this.mouse.y * 5 + 3, 0));
-      if (distToMouse < 4) {
-        const pushDir = data.position.clone().sub(new THREE.Vector3(this.mouse.x * 5, this.mouse.y * 5 + 3, 0)).normalize();
-        data.velocity.add(pushDir.multiplyScalar(0.005));
-      }
-
-      data.velocity.add(windForce);
-      data.velocity.clampLength(0.001, 0.08);
-
-      data.position.add(data.velocity);
-
-      data.rotation.x += data.rotSpeed.x;
-      data.rotation.y += data.rotSpeed.y;
-      data.rotation.z += data.rotSpeed.z;
-
-      // Reset when touching ground or out of bounds
-      if (data.position.y < 0.1 || Math.abs(data.position.x) > 15 || Math.abs(data.position.z) > 15) {
-        data.position.set(
-          (Math.random() - 0.5) * 10,
-          Math.random() * 4 + 7,
-          (Math.random() - 0.5) * 10
-        );
-        data.velocity.set(
-          (Math.random() - 0.5) * 0.02,
-          -Math.random() * 0.03 - 0.01,
-          (Math.random() - 0.5) * 0.02
-        );
-      }
-
-      dummy.position.copy(data.position);
-      dummy.rotation.copy(data.rotation);
-      dummy.scale.set(data.scale, data.scale, data.scale);
-      dummy.updateMatrix();
-
-      this.petalMesh.setMatrixAt(i, dummy.matrix);
-    }
-    this.petalMesh.instanceMatrix.needsUpdate = true;
-
-    this.renderer.render(this.scene, this.camera);
-  }
+    blossomInstanced.instanceMatrix.needsUpdate = true;
+    if (blossomInstanced.instanceColor) blossomInstanced.instanceColor.needsUpdate = true;
+    treeGroup.add(blossomInstanced);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  new SakuraSanctuary();
-});
+/* ==========================================================================
+   REAL PETAL SHAPE & FALLING PHYSICS
+   ========================================================================== */
+
+function createPetalGeometry() {
+    // Custom curved heart-shaped petal with small notch at tip, 12-16 segments, curved along length
+    const shape = new THREE.Shape();
+    // Draw heart-ish petal profile
+    shape.moveTo(0, 0);
+    shape.bezierCurveTo(0.6, 0.4, 0.8, 1.2, 0.3, 1.8);
+    shape.bezierCurveTo(0.1, 2.0, 0, 2.1, 0, 2.2); // Notch at tip
+    shape.bezierCurveTo(0, 2.1, -0.1, 2.0, -0.3, 1.8);
+    shape.bezierCurveTo(-0.8, 1.2, -0.6, 0.4, 0, 0);
+
+    const extrudeSettings = {
+        steps: 6,
+        depth: 0.05,
+        bevelEnabled: true,
+        bevelThickness: 0.02,
+        bevelSize: 0.02,
+        bevelSegments: 3
+    };
+
+    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geo.center();
+    
+    // Bend petal slightly along its length
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+        // Curve Z based on Y
+        z += Math.sin((y / 2.2) * Math.PI * 0.5) * 0.2;
+        pos.setXYZ(i, x * 0.35, y * 0.35, z); // Make much smaller (about 1/3 of previous size)
+    }
+    geo.computeVertexNormals();
+    return geo;
+}
+
+function createPetals() {
+    const petalGeo = createPetalGeometry();
+    const petalMat = new THREE.MeshStandardMaterial({
+        color: '#ffb7c5',
+        roughness: 0.3,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        flatShading: false,
+        transparent: true,
+        opacity: 0.92
+    });
+
+    petalInstancedMesh = new THREE.InstancedMesh(petalGeo, petalMat, maxPetals);
+    petalInstancedMesh.castShadow = true;
+    scene.add(petalInstancedMesh);
+
+    petalData = [];
+    const colors = ['#ffffff', '#ffd6e5', '#ffb7c5', '#ff9ecd'];
+
+    for (let i = 0; i < maxPetals; i++) {
+        const data = resetPetal(new Object3D(), true);
+        petalData.push(data);
+
+        const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
+        petalInstancedMesh.setColorAt(i, color);
+    }
+    petalInstancedMesh.instanceColor.needsUpdate = true;
+}
+
+function resetPetal(data, initial = false) {
+    data.position = new THREE.Vector3(
+        (Math.random() - 0.5) * 50,
+        initial ? Math.random() * 35 + 5 : 38 + Math.random() * 5,
+        (Math.random() - 0.5) * 50
+    );
+    data.rotation = new THREE.Vector3(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    data.rotationSpeed = new THREE.Vector3(
+        (Math.random() - 0.5) * 3,
+        (Math.random() - 0.5) * 3,
+        (Math.random() - 0.5) * 3
+    );
+    data.velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 0.2,
+        -0.05 - Math.random() * 0.08,
+        (Math.random() - 0.5) * 0.2
+    );
+    data.floatFactor = Math.random() * Math.PI * 2;
+    return data;
+}
+
+function updatePetals(delta) {
+    if (!petalInstancedMesh) return;
+
+    const dummy = new THREE.Object3D();
+    const time = clock.getElapsedTime();
+
+    for (let i = 0; i < maxPetals; i++) {
+        if (i >= currentDensity) {
+            // Hide unused petals far below
+            dummy.position.set(0, -9999, 0);
+            dummy.updateMatrix();
+            petalInstancedMesh.setMatrixAt(i, dummy.matrix);
+            continue;
+        }
+
+        let p = petalData[i];
+
+        // Wind & turbulence physics with tumbling rotation on all 3 axes
+        p.floatFactor += delta * 1.5;
+        const windX = Math.sin(time * 0.8 + p.floatFactor) * 0.15 * windForce;
+        const windZ = Math.cos(time * 0.6 + p.floatFactor) * 0.15 * windForce;
+
+        p.velocity.x += (windX - p.velocity.x) * 0.05;
+        p.velocity.z += (windZ - p.velocity.z) * 0.05;
+
+        p.position.addScaledVector(p.velocity, delta * 20);
+        p.position.y -= (0.04 + Math.sin(p.floatFactor) * 0.01) * windForce;
+
+        // Mouse interaction repulsion
+        const distToMouse = p.position.distanceTo(planeIntersection);
+        if (distToMouse < 8) {
+            const repulseDir = p.position.clone().sub(planeIntersection).normalize();
+            p.position.addScaledVector(repulseDir, (8 - distToMouse) * 0.1);
+        }
+
+        // Tumbling rotation on all 3 axes
+        p.rotation.x += p.rotationSpeed.x * delta;
+        p.rotation.y += p.rotationSpeed.y * delta;
+        p.rotation.z += p.rotationSpeed.z * delta;
+
+        // Reset if fallen to ground
+        if (p.position.y < 0) {
+            resetPetal(p);
+        }
+
+        dummy.position.copy(p.position);
+        dummy.rotation.set(p.rotation.x, p.rotation.y, p.rotation.z);
+        dummy.scale.set(1, 1, 1);
+        dummy.updateMatrix();
+
+        petalInstancedMesh.setMatrixAt(i, dummy.matrix);
+    }
+
+    petalInstancedMesh.instanceMatrix.needsUpdate = true;
+}
+
+/* ==========================================================================
+   EVENT LISTENERS & UI INTERACTIVITY
+   ========================================================================== */
+
+function setupEvents() {
+    window.addEventListener('resize', onWindowResize);
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Density Buttons
+    document.querySelectorAll('.density-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.density-btn').forEach(b => {
+                b.classList.remove('bg-pink-500/25', 'border-pink-500/50', 'text-pink-200');
+                b.classList.add('bg-white/5', 'border-white/10');
+            });
+            e.target.classList.remove('bg-white/5', 'border-white/10');
+            e.target.classList.add('bg-pink-500/25', 'border-pink-500/50', 'text-pink-200');
+            currentDensity = parseInt(e.target.getAttribute('data-density'));
+        });
+    });
+
+    // Wind Slider
+    const windSlider = document.getElementById('wind-slider');
+    windSlider.addEventListener('input', (e) => {
+        windForce = parseFloat(e.target.value);
+    });
+
+    // Reset Camera Button
+    document.getElementById('btn-reset-cam').addEventListener('click', () => {
+        gsap.to(camera.position, {
+            x: 0,
+            y: 15,
+            z: 65,
+            duration: 1.5,
+            ease: 'power2.out',
+            onUpdate: () => controls.update()
+        });
+        controls.target.set(0, 12, 0);
+    });
+
+    // Info Modal
+    const modal = document.getElementById('info-modal');
+    document.getElementById('btn-info').addEventListener('click', () => {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+    });
+    document.getElementById('modal-close').addEventListener('click', () => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+    });
+    document.getElementById('modal-ok').addEventListener('click', () => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    // Ambient Audio Toggle
+    const btnAudio = document.getElementById('btn-audio');
+    btnAudio.addEventListener('click', toggleAudio);
+}
+
+function onWindowResize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    composer.setSize(width, height);
+}
+
+function onMouseMove(event) {
+    mouse.x = (event.clientX / width) * 2 - 1;
+    mouse.y = -(event.clientY / height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    raycaster.ray.intersectPlane(groundPlane, planeIntersection);
+}
+
+/* ==========================================================================
+   AUDIO SYNTHESIS (Gentle Wind Chime Atmosphere)
+   ========================================================================== */
+
+function toggleAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioGainNode = audioCtx.createGain();
+        audioGainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        audioGainNode.connect(audioCtx.destination);
+    }
+
+    if (isAudioPlaying) {
+        if (audioInterval) clearInterval(audioInterval);
+        audioGainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+        document.getElementById('audio-text').textContent = 'Ambient Wind';
+        isAudioPlaying = false;
+    } else {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        audioGainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.5);
+        
+        // Gentle pentatonic chime notes
+        const notes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+        audioInterval = setInterval(() => {
+            if (!isAudioPlaying) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            const freq = notes[Math.floor(Math.random() * notes.length)];
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.type = 'sine';
+            
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.0);
+            
+            osc.connect(gain);
+            gain.connect(audioGainNode);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 3.0);
+        }, 1200);
+
+        document.getElementById('audio-text').textContent = 'Muting Wind';
+        isAudioPlaying = true;
+    }
+}
+
+/* ==========================================================================
+   ANIMATION LOOP
+   ========================================================================== */
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+    updatePetals(delta);
+
+    controls.update();
+    composer.render();
+}
