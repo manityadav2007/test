@@ -1,35 +1,38 @@
-/* Custom Animations & Fine Enhancements */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
+
+* {
+  box-sizing: border-box;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
+body {
+  background-color: #0d0910;
+  color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
 }
 
-/* Custom OTP input box styling */
-.otp-box:focus {
-  box-shadow: 0 0 0 2px rgba(51, 144, 236, 0.4);
-}
-
-/* Smooth Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0e1621;
+  background: #0d0910;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #242f3d;
+  background: #33263b;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #3390ec;
+  background: #5a3d5e;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.animate-float {
+  animation: floatSlow 8s ease-in-out infinite;
 }
