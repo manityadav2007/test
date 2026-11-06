@@ -57,7 +57,6 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    /* Custom scrollbar for modern sleek look */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -257,1143 +256,228 @@
             <button class="model-option w-full flex items-start gap-3 px-4 py-2.5 hover:bg-gemini-hover text-left transition-colors" data-model="gemini-1.5-flash" data-name="Gemini 1.5 Flash">
               <i data-lucide="zap" class="w-5 h-5 text-amber-400 mt-0.5 shrink-0"></i>
               <div>
-                <div class="text-xs font-semibold text-white">Gemini 1.5 Flash</div>
-                <div class="text-[11px] text-gemini-muted mt-0.5">Ultra-fast response for everyday tasks & light coding.</div>
+                <div class="text-xs font-semibold text-white flex items-center gap-2">
+                  Gemini 1.5 Flash
+                  <span class="text-[9px] bg-amber-400/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">FAST</span>
+                </div>
+                <div class="text-[11px] text-gemini-muted mt-0.5">Ultra-fast response for everyday tasks & quick answers.</div>
               </div>
             </button>
             <button class="model-option w-full flex items-start gap-3 px-4 py-2.5 hover:bg-gemini-hover text-left transition-colors" data-model="gemini-2.0-thinking" data-name="Gemini 2.0 Thinking">
-              <i data-lucide="brain-circuit" class="w-5 h-5 text-gemini-purple mt-0.5 shrink-0"></i>
+              <i data-lucide="brain" class="w-5 h-5 text-gemini-purple mt-0.5 shrink-0"></i>
               <div>
                 <div class="text-xs font-semibold text-white flex items-center gap-2">
                   Gemini 2.0 Thinking
-                  <span class="text-[9px] bg-gemini-purple/20 text-gemini-purple px-1.5 py-0.5 rounded-full font-bold">EXPERIMENTAL</span>
+                  <span class="text-[9px] bg-gemini-purple/20 text-gemini-purple px-1.5 py-0.5 rounded-full font-bold">DEEP</span>
                 </div>
-                <div class="text-[11px] text-gemini-muted mt-0.5">Exposes step-by-step logic & deep math/coding analysis.</div>
+                <div class="text-[11px] text-gemini-muted mt-0.5">Enhanced step-by-step logic and deep code architecture.</div>
               </div>
             </button>
           </div>
         </div>
-
-        <!-- Active Project Badge (if active) -->
-        <div id="active-project-badge" class="hidden items-center gap-1.5 px-2.5 py-1 bg-gemini-purple/15 text-gemini-purple rounded-full text-xs font-medium border border-gemini-purple/30">
-          <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i>
-          <span id="active-project-name">Python Expert</span>
-          <button id="btn-clear-project" class="hover:text-white ml-1"><i data-lucide="x" class="w-3 h-3"></i></button>
-        </div>
       </div>
 
-      <!-- Header Actions -->
+      <!-- Top Right Header Actions -->
       <div class="flex items-center gap-2">
-        <button id="btn-export-chat" title="Export Chat History" class="p-2 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full transition-colors">
+        <button id="btn-export-chat" title="Export Conversation" class="p-2 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full transition-colors">
           <i data-lucide="download" class="w-4 h-4"></i>
         </button>
-        <button id="btn-clear-chat" title="Clear Conversation" class="p-2 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full transition-colors">
+        <button id="btn-clear-chat" title="Clear Active Chat" class="p-2 text-gemini-muted hover:text-red-400 hover:bg-gemini-hover rounded-full transition-colors">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
         </button>
       </div>
     </header>
 
-    <!-- CHAT CONTAINER & SCROLL AREA -->
-    <div id="chat-container" class="flex-1 overflow-y-auto px-4 md:px-0 py-6 scroll-smooth">
-      <div class="max-w-3xl mx-auto flex flex-col justify-between min-h-full">
-        
-        <!-- WELCOME SCREEN (Shown when active chat is empty) -->
-        <div id="welcome-view" class="flex-1 flex flex-col justify-center items-start my-auto py-8 transition-opacity duration-300">
-          <div class="mb-8 space-y-3">
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text gemini-gradient-text animate-gradient-x">
-              Hello, Explorer
-            </h1>
-            <p class="text-2xl md:text-3xl font-medium text-gray-500">
-              Where would you like to start today?
+    <!-- CHAT MESSAGES & WELCOME CONTAINER -->
+    <div id="messages-container" class="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6 scroll-smooth">
+      <!-- WELCOME HERO STATE (when no messages) -->
+      <div id="welcome-container" class="max-w-4xl mx-auto h-full flex flex-col justify-center items-start pt-8 pb-12">
+        <div class="mb-8 space-y-2">
+          <h1 class="text-4xl md:text-5xl font-medium tracking-tight text-white">
+            Hello, <span class="gemini-gradient-text font-bold">Developer</span>
+          </h1>
+          <p class="text-xl md:text-2xl font-light text-gemini-muted">
+            How can I help you bring your ideas to life today?
+          </p>
+        </div>
+
+        <!-- SUGGESTION CHIPS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 w-full mt-4">
+          <div class="suggestion-card group p-4 bg-gemini-sidebar/80 hover:bg-gemini-hover border border-white/5 rounded-2xl cursor-pointer transition-all duration-200 flex flex-col justify-between h-36 hover:border-gemini-blue/40">
+            <p class="text-xs text-gray-300 font-medium group-hover:text-white transition-colors line-clamp-3">
+              Create a responsive React component for an analytics dashboard with Tailwind
             </p>
+            <div class="flex justify-end">
+              <div class="p-2 rounded-full bg-gemini-card group-hover:bg-gemini-blue group-hover:text-white text-gemini-muted transition-colors">
+                <i data-lucide="code-2" class="w-4 h-4"></i>
+              </div>
+            </div>
           </div>
 
-          <!-- Suggestion Cards Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mt-4">
-            <button class="suggestion-card p-4 rounded-2xl bg-gemini-sidebar hover:bg-gemini-card border border-white/5 hover:border-white/10 transition-all text-left flex flex-col justify-between group h-36 relative overflow-hidden shadow-sm">
-              <p class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors pr-6">
-                Write a Python script to scrape daily tech news and summarize key takeaways
-              </p>
-              <div class="flex justify-end">
-                <div class="w-8 h-8 rounded-full bg-gemini-bg flex items-center justify-center text-gemini-blue group-hover:scale-110 transition-transform">
-                  <i data-lucide="code-2" class="w-4 h-4"></i>
-                </div>
+          <div class="suggestion-card group p-4 bg-gemini-sidebar/80 hover:bg-gemini-hover border border-white/5 rounded-2xl cursor-pointer transition-all duration-200 flex flex-col justify-between h-36 hover:border-gemini-purple/40">
+            <p class="text-xs text-gray-300 font-medium group-hover:text-white transition-colors line-clamp-3">
+              Help me debug a memory leak in my Node.js asynchronous pipeline
+            </p>
+            <div class="flex justify-end">
+              <div class="p-2 rounded-full bg-gemini-card group-hover:bg-gemini-purple group-hover:text-white text-gemini-muted transition-colors">
+                <i data-lucide="bug" class="w-4 h-4"></i>
               </div>
-            </button>
+            </div>
+          </div>
 
-            <button class="suggestion-card p-4 rounded-2xl bg-gemini-sidebar hover:bg-gemini-card border border-white/5 hover:border-white/10 transition-all text-left flex flex-col justify-between group h-36 relative overflow-hidden shadow-sm">
-              <p class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors pr-6">
-                Brainstorm names & tagline concepts for an AI-powered design startup
-              </p>
-              <div class="flex justify-end">
-                <div class="w-8 h-8 rounded-full bg-gemini-bg flex items-center justify-center text-gemini-purple group-hover:scale-110 transition-transform">
-                  <i data-lucide="lightbulb" class="w-4 h-4"></i>
-                </div>
+          <div class="suggestion-card group p-4 bg-gemini-sidebar/80 hover:bg-gemini-hover border border-white/5 rounded-2xl cursor-pointer transition-all duration-200 flex flex-col justify-between h-36 hover:border-gemini-pink/40">
+            <p class="text-xs text-gray-300 font-medium group-hover:text-white transition-colors line-clamp-3">
+              Write a high-converting landing page copy for an AI SaaS startup
+            </p>
+            <div class="flex justify-end">
+              <div class="p-2 rounded-full bg-gemini-card group-hover:bg-gemini-pink group-hover:text-white text-gemini-muted transition-colors">
+                <i data-lucide="pen-tool" class="w-4 h-4"></i>
               </div>
-            </button>
+            </div>
+          </div>
 
-            <button class="suggestion-card p-4 rounded-2xl bg-gemini-sidebar hover:bg-gemini-card border border-white/5 hover:border-white/10 transition-all text-left flex flex-col justify-between group h-36 relative overflow-hidden shadow-sm">
-              <p class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors pr-6">
-                Draft a concise executive summary for a project status update email
-              </p>
-              <div class="flex justify-end">
-                <div class="w-8 h-8 rounded-full bg-gemini-bg flex items-center justify-center text-gemini-pink group-hover:scale-110 transition-transform">
-                  <i data-lucide="file-text" class="w-4 h-4"></i>
-                </div>
+          <div class="suggestion-card group p-4 bg-gemini-sidebar/80 hover:bg-gemini-hover border border-white/5 rounded-2xl cursor-pointer transition-all duration-200 flex flex-col justify-between h-36 hover:border-amber-400/40">
+            <p class="text-xs text-gray-300 font-medium group-hover:text-white transition-colors line-clamp-3">
+              Explain quantum key distribution cryptography in simple terms
+            </p>
+            <div class="flex justify-end">
+              <div class="p-2 rounded-full bg-gemini-card group-hover:bg-amber-400 group-hover:text-black text-gemini-muted transition-colors">
+                <i data-lucide="lightbulb" class="w-4 h-4"></i>
               </div>
-            </button>
-
-            <button class="suggestion-card p-4 rounded-2xl bg-gemini-sidebar hover:bg-gemini-card border border-white/5 hover:border-white/10 transition-all text-left flex flex-col justify-between group h-36 relative overflow-hidden shadow-sm">
-              <p class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors pr-6">
-                Explain how Transformer architectures and Attention mechanisms work
-              </p>
-              <div class="flex justify-end">
-                <div class="w-8 h-8 rounded-full bg-gemini-bg flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                  <i data-lucide="cpu" class="w-4 h-4"></i>
-                </div>
-              </div>
-            </button>
+            </div>
           </div>
         </div>
-
-        <!-- MESSAGES FEED (Shown when conversation active) -->
-        <div id="messages-feed" class="hidden flex-1 space-y-6 pb-6">
-          <!-- Messages dynamically injected here -->
-        </div>
-
-        <!-- STREAMING / TYPING INDICATOR -->
-        <div id="typing-indicator" class="hidden flex items-start gap-4 mb-4">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemini-blue via-gemini-purple to-gemini-pink flex items-center justify-center shrink-0 animate-spin">
-            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
-          </div>
-          <div class="flex items-center gap-1.5 pt-2">
-            <span class="shimmer-dot"></span>
-            <span class="shimmer-dot"></span>
-            <span class="shimmer-dot"></span>
-            <span class="text-xs text-gemini-muted ml-2 animate-pulse">Gemini is thinking...</span>
-          </div>
-        </div>
-
       </div>
     </div>
 
-    <!-- BOTTOM PROMPT INPUT BAR -->
-    <div class="p-3 md:p-6 bg-gradient-to-t from-gemini-bg via-gemini-bg to-transparent z-10">
-      <div class="max-w-3xl mx-auto">
-        <!-- Input Box Container -->
-        <div id="input-box-wrapper" class="bg-gemini-sidebar border border-white/10 rounded-3xl p-3 focus-within:border-gemini-blue/60 transition-all shadow-xl relative backdrop-blur-md">
-          <!-- Image / File Preview Attachment Bar -->
-          <div id="attachment-preview-bar" class="hidden flex items-center gap-2 mb-2 px-2 pt-1 overflow-x-auto">
-            <!-- Dynamic attachment chips -->
-          </div>
-
-          <!-- Textarea -->
-          <textarea id="user-prompt-input" rows="1" placeholder="Ask Gemini or type '/' for prompts..." class="w-full bg-transparent text-gray-100 placeholder:text-gray-500 focus:outline-none resize-none px-2 py-1.5 text-base max-h-48 scrollbar-thin font-normal"></textarea>
-
-          <!-- Action Buttons Bar -->
-          <div class="flex items-center justify-between pt-2 px-1 border-t border-white/5 mt-1">
-            <!-- Left Toolbar Tools -->
-            <div class="flex items-center gap-1">
-              <label title="Attach image or document" class="p-2 hover:bg-gemini-hover rounded-full text-gemini-muted hover:text-white cursor-pointer transition-colors">
-                <i data-lucide="image" class="w-5 h-5"></i>
-                <input type="file" id="file-input" accept="image/*,.pdf,.txt,.js,.py,.json" class="hidden" multiple />
-              </label>
-              
-              <button id="btn-voice-input" title="Voice Dictation" class="p-2 hover:bg-gemini-hover rounded-full text-gemini-muted hover:text-white transition-colors relative">
-                <i data-lucide="mic" class="w-5 h-5"></i>
-                <span id="recording-pulse" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-              </button>
-
-              <button id="btn-deep-think" title="Toggle Deep Thinking Engine" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 hover:bg-gemini-hover rounded-full text-xs text-gemini-muted hover:text-white transition-colors border border-transparent hover:border-white/10">
-                <i data-lucide="brain" class="w-3.5 h-3.5 text-gemini-purple"></i>
-                <span>Deep Think</span>
-              </button>
-            </div>
-
-            <!-- Right Submit Button -->
-            <div class="flex items-center gap-2">
-              <span id="char-count" class="text-[10px] text-gemini-muted hidden sm:inline">0 / 4000</span>
-              <button id="btn-send-prompt" disabled class="p-2.5 bg-gemini-blue text-white rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-md flex items-center justify-center">
-                <i data-lucide="arrow-up" class="w-5 h-5"></i>
-              </button>
-            </div>
+    <!-- PROMPT INPUT SECTION -->
+    <div class="max-w-4xl mx-auto w-full px-4 pb-4 shrink-0 z-20">
+      <!-- Top Bar above Prompt Input Box -->
+      <div class="flex items-center justify-between px-2 mb-2">
+        <div class="flex items-center gap-2">
+          <!-- Fast Model Quick Switcher Badge (Updated from Deep Think to Fast Model with light blue color) -->
+          <button id="btn-deep-think" type="button" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-sky-300 bg-sky-500/15 border border-sky-400/30 hover:bg-sky-500/25 transition-all shadow-sm group" title="Switch to Fast Model">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform"></i>
+            <span>Fast Model</span>
+          </button>
+          <div id="active-project-badge" class="hidden items-center gap-1.5 px-2.5 py-1 bg-gemini-purple/20 border border-gemini-purple/30 rounded-full text-xs text-gemini-purple font-medium">
+            <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i>
+            <span id="active-project-name">Gem</span>
+            <button id="btn-clear-project" class="hover:text-white ml-0.5"><i data-lucide="x" class="w-3 h-3"></i></button>
           </div>
         </div>
-
-        <!-- Disclaimer Footer -->
-        <p class="text-[11px] text-center text-gray-500 mt-2 font-normal">
-          Gemini may display inaccurate info, including about people, so double-check its responses.
-        </p>
+        <div class="text-[11px] text-gemini-muted flex items-center gap-2">
+          <span id="char-count">0 / 4000</span>
+        </div>
       </div>
+
+      <!-- Prompt Box Container -->
+      <div class="relative bg-gemini-sidebar border border-white/10 focus-within:border-gemini-blue/60 rounded-3xl p-3 shadow-2xl transition-all duration-200">
+        <!-- Attachment preview chips -->
+        <div id="attachment-bar" class="hidden flex-wrap gap-2 mb-2 px-2 pt-1"></div>
+
+        <textarea id="user-prompt-input" rows="1" placeholder="Ask Gemini or type '/' for prompts..." class="w-full bg-transparent text-gemini-text placeholder:text-gray-500 resize-none focus:outline-none px-2 py-1 max-h-48 text-sm leading-relaxed scrollbar-thin"></textarea>
+
+        <!-- Controls Bar inside Prompt Box -->
+        <div class="flex items-center justify-between pt-2 px-1">
+          <div class="flex items-center gap-1">
+            <input type="file" id="file-input" class="hidden" multiple />
+            <button id="btn-attach-file" type="button" title="Attach file" class="p-2 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full transition-colors">
+              <i data-lucide="paperclip" class="w-4 h-4"></i>
+            </button>
+            <button id="btn-voice-input" type="button" title="Voice dictation" class="p-2 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full transition-colors relative">
+              <i data-lucide="mic" class="w-4 h-4"></i>
+              <span id="recording-pulse" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+            </button>
+          </div>
+
+          <button id="btn-send-prompt" disabled class="p-2.5 bg-gemini-blue hover:bg-blue-600 disabled:opacity-40 disabled:hover:bg-gemini-blue text-white rounded-full transition-all duration-200 shadow-md flex items-center justify-center cursor-pointer disabled:cursor-not-allowed">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <p class="text-[11px] text-center text-gemini-muted mt-2">Gemini may display inaccurate info, so double-check its responses.</p>
     </div>
   </main>
 
-  <!-- MODAL: CREATE PROJECT / GEM -->
+  <!-- MODAL: CREATE / EDIT PROJECT GEM -->
   <div id="gem-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-gemini-sidebar border border-white/10 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-      <div class="flex items-center justify-between pb-4 border-b border-white/10">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-gemini-purple/20 flex items-center justify-center text-gemini-purple">
-            <i data-lucide="gem" class="w-5 h-5"></i>
-          </div>
-          <h3 class="text-lg font-semibold text-white">Create Custom Gem / Project</h3>
-        </div>
-        <button id="close-gem-modal" class="p-1 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full">
+    <div class="bg-gemini-card border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-5 h-5 text-gemini-blue"></i> Create Custom Gem
+        </h3>
+        <button id="close-gem-modal" class="text-gemini-muted hover:text-white p-1 rounded-lg hover:bg-gemini-hover">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-
-      <form id="gem-form" class="space-y-4 pt-4">
+      <form id="gem-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-gemini-muted uppercase mb-1.5">Gem Name</label>
-          <input type="text" id="gem-name" required placeholder="e.g. Senior Python Architect, Code Reviewer" class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gemini-blue transition-colors" />
+          <label class="block text-xs font-semibold text-gemini-muted mb-1">Gem / Project Name</label>
+          <input id="gem-name" type="text" placeholder="e.g., Code Reviewer Pro" class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue" required />
         </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gemini-muted uppercase mb-1.5">Icon Color & Symbol</label>
-          <div class="flex items-center gap-3">
-            <select id="gem-icon" class="bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none flex-1">
-              <option value="code">Code & Tech</option>
-              <option value="pen-tool">Creative Writing</option>
-              <option value="briefcase">Business & Strategy</option>
-              <option value="database">Data & Analytics</option>
-              <option value="sparkles">General Assistant</option>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gemini-muted mb-1">Icon</label>
+            <select id="gem-icon" class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue">
+              <option value="code">Code</option>
+              <option value="pen-tool">Writing</option>
+              <option value="zap">Fast Flash</option>
+              <option value="terminal">Terminal</option>
+              <option value="compass">Explorer</option>
             </select>
-            <select id="gem-color" class="bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none flex-1">
-              <option value="text-gemini-blue">Google Blue</option>
-              <option value="text-gemini-purple">Purple Spark</option>
-              <option value="text-emerald-400">Emerald</option>
-              <option value="text-amber-400">Amber Gold</option>
-              <option value="text-gemini-pink">Rose Pink</option>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gemini-muted mb-1">Theme Color</label>
+            <select id="gem-color" class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue">
+              <option value="blue">Blue</option>
+              <option value="purple">Purple</option>
+              <option value="pink">Pink</option>
+              <option value="emerald">Emerald</option>
             </select>
           </div>
         </div>
-
         <div>
-          <label class="block text-xs font-semibold text-gemini-muted uppercase mb-1.5">System Instructions</label>
-          <textarea id="gem-instructions" rows="4" placeholder="Define the persona, tone, style, guidelines, and context for this Gem..." class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gemini-blue transition-colors resize-none"></textarea>
+          <label class="block text-xs font-semibold text-gemini-muted mb-1">Custom System Prompt / Context</label>
+          <textarea id="gem-instructions" rows="4" placeholder="Instruct Gemini how to act for this project..." class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue resize-none"></textarea>
         </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
-          <button type="button" id="cancel-gem-modal" class="px-4 py-2 rounded-xl text-xs font-medium text-gemini-muted hover:text-white hover:bg-gemini-hover transition-colors">
-            Cancel
-          </button>
-          <button type="submit" class="px-5 py-2 bg-gemini-blue hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-lg">
-            Create Gem
-          </button>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="cancel-gem-modal" class="px-4 py-2 bg-gemini-hover hover:bg-white/10 rounded-xl text-xs text-gray-300 font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-gemini-blue hover:bg-blue-600 rounded-xl text-xs text-white font-medium shadow-md">Create Gem</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: SETTINGS & SYSTEM PROMPT -->
+  <!-- MODAL: SETTINGS -->
   <div id="settings-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-gemini-sidebar border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-      <div class="flex items-center justify-between pb-4 border-b border-white/10">
-        <div class="flex items-center gap-2">
-          <i data-lucide="settings" class="w-5 h-5 text-gemini-blue"></i>
-          <h3 class="text-lg font-semibold text-white">Workspace Settings</h3>
-        </div>
-        <button id="close-settings-modal" class="p-1 text-gemini-muted hover:text-white hover:bg-gemini-hover rounded-full">
+    <div class="bg-gemini-card border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-gemini-blue"></i> Settings & Customization
+        </h3>
+        <button id="close-settings-modal" class="text-gemini-muted hover:text-white p-1 rounded-lg hover:bg-gemini-hover">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-
-      <div class="space-y-4 pt-4">
+      <div class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-gemini-muted uppercase mb-1.5">Custom API Key (Optional)</label>
-          <input type="password" id="api-key-input" placeholder="AIzaSy... (Default mock engine active)" class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gemini-blue transition-colors" />
-          <p class="text-[11px] text-gray-500 mt-1">Provide your Gemini API key or leave blank for instant realistic local engine responses.</p>
+          <label class="block text-xs font-semibold text-gemini-muted mb-1">Gemini API Key (Optional Override)</label>
+          <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue" />
+          <p class="text-[11px] text-gemini-muted mt-1">By default, app uses system simulation engine.</p>
         </div>
-
         <div>
-          <label class="block text-xs font-semibold text-gemini-muted uppercase mb-1.5">Default Global Persona</label>
-          <textarea id="global-system-prompt" rows="3" placeholder="e.g. Always provide concise code examples and bullet points..." class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gemini-blue transition-colors resize-none"></textarea>
+          <label class="block text-xs font-semibold text-gemini-muted mb-1">Global AI Personality / Core Directive</label>
+          <textarea id="global-system-prompt" rows="3" placeholder="e.g. Always respond concisely and include code blocks where relevant." class="w-full bg-gemini-bg border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-gemini-blue resize-none"></textarea>
         </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
-          <button id="save-settings-btn" class="px-5 py-2 bg-gemini-blue hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-lg">
-            Save Preferences
-          </button>
+        <div class="flex justify-end gap-2 pt-2 border-t border-white/5">
+          <button id="save-settings-btn" type="button" class="px-4 py-2 bg-gemini-blue hover:bg-blue-600 rounded-xl text-xs text-white font-medium shadow-md">Save Preferences</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- APP JAVASCRIPT LOGIC -->
-  <script>
-    // STATE MANAGEMENT & LOCAL STORAGE STORAGE KEYS
-    const STORAGE_KEY_CHATS = 'gemini_chats_v1';
-    const STORAGE_KEY_PROJECTS = 'gemini_projects_v1';
-    const STORAGE_KEY_SETTINGS = 'gemini_settings_v1';
-
-    // Initial Mock Projects / Gems
-    const DEFAULT_PROJECTS = [
-      {
-        id: 'gem-python-expert',
-        name: 'Python Architect',
-        icon: 'code',
-        color: 'text-gemini-blue',
-        instructions: 'You are an expert Senior Python Engineer. Provide concise, clean, PEP-8 compliant Python 3.12 code with typed hints.'
-      },
-      {
-        id: 'gem-creative-writer',
-        name: 'Creative Storyteller',
-        icon: 'pen-tool',
-        color: 'text-gemini-purple',
-        instructions: 'You are a master creative writer and editor. Craft vivid descriptions, engaging narratives, and evocative prose.'
-      },
-      {
-        id: 'gem-growth-hacker',
-        name: 'Product & Startup Guide',
-        icon: 'briefcase',
-        color: 'text-amber-400',
-        instructions: 'You are a veteran Y Combinator startup advisor. Give razor-sharp strategic analysis for product design and growth.'
-      }
-    ];
-
-    // State Variables
-    let state = {
-      chats: [],
-      projects: [],
-      activeChatId: null,
-      activeModel: 'gemini-1.5-pro',
-      activeProjectId: null,
-      isGenerating: false,
-      isVoiceActive: false,
-      attachments: [],
-      settings: {
-        apiKey: '',
-        globalPrompt: ''
-      }
-    };
-
-    // DOM Elements
-    const sidebar = document.getElementById('sidebar');
-    const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const btnNewChat = document.getElementById('btn-new-chat');
-    const newChatTopBtn = document.getElementById('new-chat-top-btn');
-    const searchChatsInput = document.getElementById('search-chats-input');
-    const projectsListEl = document.getElementById('projects-list');
-    const recentChatsListEl = document.getElementById('recent-chats-list');
-    
-    const modelSelectorBtn = document.getElementById('model-selector-btn');
-    const selectedModelNameEl = document.getElementById('selected-model-name');
-    const modelDropdown = document.getElementById('model-dropdown');
-    const activeProjectBadge = document.getElementById('active-project-badge');
-    const activeProjectNameEl = document.getElementById('active-project-name');
-    const btnClearProject = document.getElementById('btn-clear-project');
-    
-    const welcomeView = document.getElementById('welcome-view');
-    const messagesFeed = document.getElementById('messages-feed');
-    const chatContainer = document.getElementById('chat-container');
-    const typingIndicator = document.getElementById('typing-indicator');
-    
-    const userPromptInput = document.getElementById('user-prompt-input');
-    const btnSendPrompt = document.getElementById('btn-send-prompt');
-    const charCountEl = document.getElementById('char-count');
-    const fileInput = document.getElementById('file-input');
-    const attachmentBar = document.getElementById('attachment-preview-bar');
-    const btnVoiceInput = document.getElementById('btn-voice-input');
-    const recordingPulse = document.getElementById('recording-pulse');
-    const btnDeepThink = document.getElementById('btn-deep-think');
-    
-    const btnExportChat = document.getElementById('btn-export-chat');
-    const btnClearChat = document.getElementById('btn-clear-chat');
-    const btnThemeToggle = document.getElementById('btn-theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const themeText = document.getElementById('theme-text');
-    
-    const gemModal = document.getElementById('gem-modal');
-    const btnOpenGemModal = document.getElementById('btn-open-gem-modal');
-    const closeGemModal = document.getElementById('close-gem-modal');
-    const cancelGemModal = document.getElementById('cancel-gem-modal');
-    const gemForm = document.getElementById('gem-form');
-    
-    const settingsModal = document.getElementById('settings-modal');
-    const btnOpenSettings = document.getElementById('btn-open-settings');
-    const closeSettingsModal = document.getElementById('close-settings-modal');
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
-    const apiKeyInput = document.getElementById('api-key-input');
-    const globalSystemPrompt = document.getElementById('global-system-prompt');
-
-    // INITIALIZATION
-    function initApp() {
-      loadStateFromStorage();
-      setupMarked();
-      lucide.createIcons();
-      renderProjects();
-      renderRecentChats();
-      
-      if (state.chats.length === 0) {
-        createNewChat(false);
-      } else {
-        switchChat(state.chats[0].id);
-      }
-
-      attachEventListeners();
-    }
-
-    function setupMarked() {
-      marked.setOptions({
-        highlight: function(code, lang) {
-          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-          return hljs.highlight(code, { language }).value;
-        },
-        breaks: true,
-        gfm: true
-      });
-    }
-
-    function loadStateFromStorage() {
-      try {
-        const savedChats = localStorage.getItem(STORAGE_KEY_CHATS);
-        const savedProjects = localStorage.getItem(STORAGE_KEY_PROJECTS);
-        const savedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
-
-        state.chats = savedChats ? JSON.parse(savedChats) : [];
-        state.projects = savedProjects ? JSON.parse(savedProjects) : DEFAULT_PROJECTS;
-        state.settings = savedSettings ? JSON.parse(savedSettings) : { apiKey: '', globalPrompt: '' };
-      } catch(e) {
-        console.error('Error loading storage', e);
-        state.projects = DEFAULT_PROJECTS;
-      }
-    }
-
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY_CHATS, JSON.stringify(state.chats));
-      localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(state.projects));
-      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(state.settings));
-    }
-
-    // CHAT MANAGEMENT
-    function createNewChat(switchToIt = true) {
-      const newChat = {
-        id: 'chat_' + Date.now(),
-        title: 'New Conversation',
-        projectId: state.activeProjectId,
-        model: state.activeModel,
-        messages: [],
-        pinned: false,
-        createdAt: new Date().toISOString()
-      };
-
-      state.chats.unshift(newChat);
-      saveState();
-      renderRecentChats();
-
-      if (switchToIt) {
-        switchChat(newChat.id);
-      }
-    }
-
-    function switchChat(chatId) {
-      state.activeChatId = chatId;
-      const chat = state.chats.find(c => c.id === chatId);
-      
-      if (!chat) return;
-
-      if (chat.projectId) {
-        const project = state.projects.find(p => p.id === chat.projectId);
-        if (project) setProjectActive(project.id);
-      } else {
-        clearActiveProject();
-      }
-
-      if (chat.model) {
-        selectModel(chat.model);
-      }
-
-      renderMessages();
-      renderRecentChats();
-    }
-
-    function deleteChat(chatId, e) {
-      if (e) e.stopPropagation();
-      state.chats = state.chats.filter(c => c.id !== chatId);
-      saveState();
-
-      if (state.activeChatId === chatId) {
-        if (state.chats.length > 0) switchChat(state.chats[0].id);
-        else createNewChat(true);
-      } else {
-        renderRecentChats();
-      }
-    }
-
-    function togglePinChat(chatId, e) {
-      if (e) e.stopPropagation();
-      const chat = state.chats.find(c => c.id === chatId);
-      if (chat) {
-        chat.pinned = !chat.pinned;
-        saveState();
-        renderRecentChats();
-      }
-    }
-
-    // RENDER FUNCTIONS
-    function renderProjects() {
-      projectsListEl.innerHTML = '';
-      state.projects.forEach(project => {
-        const isSelected = state.activeProjectId === project.id;
-        const btn = document.createElement('button');
-        btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${isSelected ? 'bg-gemini-card text-white border border-white/10 shadow-sm' : 'text-gemini-muted hover:bg-gemini-hover hover:text-white'}`;
-        btn.onclick = () => setProjectActive(project.id);
-
-        btn.innerHTML = `
-          <div class="flex items-center gap-2.5 truncate">
-            <i data-lucide="${project.icon}" class="w-4 h-4 ${project.color} shrink-0"></i>
-            <span class="truncate">${project.name}</span>
-          </div>
-          ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-gemini-blue"></div>' : ''}
-        `;
-        projectsListEl.appendChild(btn);
-      });
-      lucide.createIcons();
-    }
-
-    function renderRecentChats() {
-      recentChatsListEl.innerHTML = '';
-      const filterTerm = searchChatsInput.value.toLowerCase().trim();
-      
-      let filtered = state.chats.filter(c => c.title.toLowerCase().includes(filterTerm));
-      
-      // Sort pinned to top
-      filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-
-      if (filtered.length === 0) {
-        recentChatsListEl.innerHTML = `<div class="px-3 py-2 text-xs text-gray-500 italic">No chats found</div>`;
-        return;
-      }
-
-      filtered.forEach(chat => {
-        const isActive = state.activeChatId === chat.id;
-        const item = document.createElement('div');
-        item.className = `group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-colors ${isActive ? 'bg-gemini-hover text-white' : 'text-gemini-muted hover:bg-gemini-hover/60 hover:text-white'}`;
-        item.onclick = () => switchChat(chat.id);
-
-        item.innerHTML = `
-          <div class="flex items-center gap-2.5 truncate pr-2">
-            <i data-lucide="message-square" class="w-3.5 h-3.5 text-gray-500 shrink-0"></i>
-            <span class="truncate">${chat.title}</span>
-          </div>
-          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button class="btn-pin p-1 hover:text-amber-400 ${chat.pinned ? 'text-amber-400 opacity-100' : ''}" title="Pin conversation">
-              <i data-lucide="pin" class="w-3 h-3"></i>
-            </button>
-            <button class="btn-delete p-1 hover:text-red-400" title="Delete conversation">
-              <i data-lucide="trash" class="w-3 h-3"></i>
-            </button>
-          </div>
-        `;
-
-        const pinBtn = item.querySelector('.btn-pin');
-        const delBtn = item.querySelector('.btn-delete');
-        pinBtn.onclick = (e) => togglePinChat(chat.id, e);
-        delBtn.onclick = (e) => deleteChat(chat.id, e);
-
-        recentChatsListEl.appendChild(item);
-      });
-      lucide.createIcons();
-    }
-
-    function renderMessages() {
-      const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      if (!activeChat || activeChat.messages.length === 0) {
-        welcomeView.classList.remove('hidden');
-        messagesFeed.classList.add('hidden');
-        messagesFeed.innerHTML = '';
-        return;
-      }
-
-      welcomeView.classList.add('hidden');
-      messagesFeed.classList.remove('hidden');
-      messagesFeed.innerHTML = '';
-
-      activeChat.messages.forEach((msg, index) => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col space-y-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`;
-        
-        if (msg.role === 'user') {
-          let attachmentMarkup = '';
-          if (msg.attachments && msg.attachments.length > 0) {
-            attachmentMarkup = `<div class="flex flex-wrap gap-2 mb-2">` +
-              msg.attachments.map(a => `<div class="text-xs bg-black/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-white/10"><i data-lucide="file-text" class="w-3.5 h-3.5 text-gemini-blue"></i><span>${a.name}</span></div>`).join('') +
-              `</div>`;
-          }
-
-          msgDiv.innerHTML = `
-            <div class="max-w-xl bg-gemini-card border border-white/10 rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-gray-100 shadow-sm">
-              ${attachmentMarkup}
-              <p class="whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.content)}</p>
-            </div>
-            <div class="flex items-center gap-2 text-[10px] text-gemini-muted pr-1">
-              <span>You</span>
-              <span>•</span>
-              <button onclick="editUserMessage(${index})" class="hover:text-white">Edit</button>
-            </div>
-          `;
-        } else {
-          // Gemini AI Message
-          let thinkingBlock = '';
-          if (msg.thinking) {
-            thinkingBlock = `
-              <details class="mb-3 bg-gemini-sidebar/80 border border-gemini-purple/20 rounded-xl p-3 text-xs text-gemini-muted group">
-                <summary class="cursor-pointer font-medium flex items-center gap-2 text-gemini-purple select-none">
-                  <i data-lucide="brain" class="w-4 h-4"></i>
-                  Thinking Process (${msg.thinkingTime || '1.2s'})
-                </summary>
-                <div class="mt-2 pt-2 border-t border-white/5 space-y-1 font-mono text-[11px] text-gray-400 whitespace-pre-wrap">
-                  ${escapeHtml(msg.thinking)}
-                </div>
-              </details>
-            `;
-          }
-
-          const htmlContent = marked.parse(msg.content);
-
-          msgDiv.innerHTML = `
-            <div class="flex items-start gap-3 w-full max-w-3xl">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemini-blue via-gemini-purple to-gemini-pink flex items-center justify-center shrink-0 shadow-md">
-                <i data-lucide="sparkles" class="w-4.5 h-4.5 text-white"></i>
-              </div>
-              <div class="flex-1 overflow-hidden space-y-2">
-                ${thinkingBlock}
-                <div class="markdown-body text-sm text-gray-200 font-normal leading-relaxed overflow-x-auto">
-                  ${htmlContent}
-                </div>
-                <!-- Message Action Toolbar -->
-                <div class="flex items-center gap-2 pt-2 text-gemini-muted opacity-80 hover:opacity-100 transition-opacity">
-                  <button onclick="copyMessageContent('${msg.id}')" title="Copy text" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button onclick="regenerateResponse(${index})" title="Regenerate" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                    <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button title="Good response" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                    <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button title="Bad response" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                    <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        messagesFeed.appendChild(msgDiv);
-      });
-
-      // Add copy functionality to markdown code blocks
-      messagesFeed.querySelectorAll('pre').forEach(pre => {
-        if (!pre.querySelector('.copy-code-btn')) {
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'copy-code-btn absolute top-2 right-2 px-2 py-1 bg-gemini-card hover:bg-gemini-hover border border-white/10 text-[10px] text-gemini-muted hover:text-white rounded-md transition-colors flex items-center gap-1';
-          copyBtn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copy`;
-          copyBtn.onclick = () => {
-            const code = pre.querySelector('code')?.innerText || '';
-            navigator.clipboard.writeText(code);
-            copyBtn.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-green-400"></i> Copied!`;
-            setTimeout(() => {
-              copyBtn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copy`;
-            }, 2000);
-          };
-          pre.appendChild(copyBtn);
-        }
-      });
-
-      lucide.createIcons();
-      scrollToBottom();
-    }
-
-    function scrollToBottom() {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    // AI GENERATION ENGINE (Streaming Simulation)
-    async function handleSendPrompt(customText = null) {
-      const text = customText || userPromptInput.value.trim();
-      if (!text || state.isGenerating) return;
-
-      const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      if (!activeChat) return;
-
-      // If first message, generate title
-      if (activeChat.messages.length === 0) {
-        activeChat.title = text.length > 25 ? text.substring(0, 25) + '...' : text;
-        renderRecentChats();
-      }
-
-      // Push User Message
-      const userMsg = {
-        id: 'msg_' + Date.now(),
-        role: 'user',
-        content: text,
-        attachments: [...state.attachments]
-      };
-      activeChat.messages.push(userMsg);
-
-      // Reset inputs
-      userPromptInput.value = '';
-      userPromptInput.style.height = 'auto';
-      state.attachments = [];
-      renderAttachmentChips();
-      updateCharCount();
-      updateSendButtonState();
-
-      renderMessages();
-      showTyping(true);
-      state.isGenerating = true;
-
-      // Prepare AI response payload
-      const isThinkingModel = state.activeModel === 'gemini-2.0-thinking';
-      const thinkingContent = isThinkingModel ? generateThinkingProcess(text) : null;
-      const generatedReply = await generateAIResponse(text);
-
-      showTyping(false);
-
-      // Create AI Response Object
-      const aiMsg = {
-        id: 'msg_' + (Date.now() + 1),
-        role: 'assistant',
-        content: '',
-        thinking: thinkingContent,
-        thinkingTime: '1.4s'
-      };
-
-      activeChat.messages.push(aiMsg);
-      renderMessages();
-
-      // Typewriter Streaming Animation Effect
-      const targetMsgIndex = activeChat.messages.length - 1;
-      const targetMsg = activeChat.messages[targetMsgIndex];
-      const words = generatedReply.split(' ');
-      
-      for (let i = 0; i < words.length; i++) {
-        targetMsg.content += (i === 0 ? '' : ' ') + words[i];
-        renderMessages();
-        await new Promise(r => setTimeout(r, Math.floor(Math.random() * 25) + 15));
-      }
-
-      state.isGenerating = false;
-      saveState();
-    }
-
-    function generateThinkingProcess(prompt) {
-      return `1. Deconstruct user prompt: "${prompt.substring(0, 40)}"
-2. Context & Persona: ${state.activeProjectId ? 'Active Gem Persona Loaded' : 'Standard Gemini Reasoning'}
-3. Evaluating potential code snippets, architectural considerations, and structure.
-4. Formulating step-by-step response with high readability and syntactical accuracy.
-5. Verification: Ensuring accurate markdown formatting & logic pass.`;
-    }
-
-    async function generateAIResponse(prompt) {
-      // Simulated Gemini engine logic based on query topic
-      await new Promise(r => setTimeout(r, 1000));
-      const lower = prompt.toLowerCase();
-      let projectContext = '';
-      
-      if (state.activeProjectId) {
-        const proj = state.projects.find(p => p.id === state.activeProjectId);
-        if (proj) projectContext = `[Gem Persona: ${proj.name}] `;
-      }
-
-      if (lower.includes('python') || lower.includes('code') || lower.includes('scrape') || lower.includes('script')) {
-        return `${projectContext}Here is a robust Python script designed for your task using clean syntax, error handling, and standard practices:
-
-\
-python
-import requests
-from bs4 import BeautifulSoup
-import json
-import time
-
-def fetch_tech_news(url):
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        articles = []
-        for item in soup.find_all('article', limit=5):
-            title = item.find('h2').get_text(strip=True) if item.find('h2') else "No Title"
-            articles.append({"title": title, "timestamp": time.time()})
-            
-        return articles
-    except Exception as e:
-        print(f"[Error] Failed to fetch data: {e}")
-        return []
-
-if __name__ == "__main__":
-    data = fetch_tech_news("https://news.ycombinator.com")
-    print(json.dumps(data, indent=2))
-\
-
-### Key Highlights:
-- Includes **HTTP headers** to simulate browser traffic.
-- Employs **structured error handling** via standard 
-ry / except` blocks.
-- Returns crisp JSON data for easy downstream integration.`;
-      }
-
-      if (lower.includes('brainstorm') || lower.includes('startup') || lower.includes('name')) {
-        return `${projectContext}Here are 4 standout startup concepts and naming ideas tailored for modern AI applications:
-
-| Concept Name | Tagline | Target Audience |
-| :--- | :--- | :--- |
-| **Aura AI** | *Luminous intelligence for design system workflows.* | Designers & UI Engineers |
-| **Synthetix** | *Autonomous code refactoring at scale.* | Devops & Enterprise Tech |
-| **Verve Labs** | *Where human craft meets machine precision.* | Creative Directors |
-| **Prism Core** | *Multi-modal data intelligence unified.* | Data Scientists |
-
-### Recommended Next Steps:
-1. Validate domain availability on `.ai` and `.com` TLDs.
-2. Conduct early user interviews to pinpoint core friction points.
-3. Build a lightweight landing page MVP using Tailwind and HTML.`;
-      }
-
-      if (lower.includes('quantum') || lower.includes('attention') || lower.includes('explain')) {
-        return `${projectContext}### Understanding Attention & Transformer Architecture
-
-The key innovation in **Transformers** (the architecture behind Gemini) is the **Self-Attention Mechanism**. Unlike older recurrent neural networks (RNNs) that processed text sequentially, Transformers evaluate all tokens in a sequence simultaneously.
-
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
-
-#### Key Components:
-* **Query (Q):** Represents the current token asking for context.
-* **Key (K):** Represents all tokens offering context clues.
-* **Value (V):** Contains the actual vector representation of the tokens.
-
-This enables models to resolve ambiguities (like knowing what "it" refers to in a long paragraph) across massive context windows effortlessly!`;
-      }
-
-      return `${projectContext}Thank you for your prompt! I have processed your request using **${state.activeModel}**.
-
-Here is a structured overview addressing your query:
-
-1. **Core Concept:** Efficiently structuring ideas into clear actionable tasks.
-2. **Execution Strategy:** Prioritizing modular design, rapid prototyping, and feedback loops.
-3. **Quality Floor:** Ensuring security, crisp user experiences, and high reliability.
-
-Let me know if you'd like me to dive deeper into any specific aspect or generate code examples!`;
-    }
-
-    function showTyping(show) {
-      if (show) {
-        typingIndicator.classList.remove('hidden');
-      } else {
-        typingIndicator.classList.add('hidden');
-      }
-      scrollToBottom();
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // INTERACTION HELPERS
-    window.editUserMessage = function(index) {
-      const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      if (!activeChat) return;
-      const msg = activeChat.messages[index];
-      if (msg && msg.role === 'user') {
-        userPromptInput.value = msg.content;
-        userPromptInput.focus();
-        updateCharCount();
-        updateSendButtonState();
-      }
-    };
-
-    window.regenerateResponse = function(index) {
-      const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      if (!activeChat) return;
-      // Slice messages up to the user message before this AI message
-      const lastUserMsg = activeChat.messages[index - 1];
-      if (lastUserMsg && lastUserMsg.role === 'user') {
-        activeChat.messages = activeChat.messages.slice(0, index);
-        handleSendPrompt(lastUserMsg.content);
-      }
-    };
-
-    window.copyMessageContent = function(msgId) {
-      const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      if (!activeChat) return;
-      const msg = activeChat.messages.find(m => m.id === msgId);
-      if (msg) {
-        navigator.clipboard.writeText(msg.content);
-        alert('Message copied to clipboard!');
-      }
-    };
-
-    function setProjectActive(projectId) {
-      if (state.activeProjectId === projectId) {
-        clearActiveProject();
-        return;
-      }
-      state.activeProjectId = projectId;
-      const project = state.projects.find(p => p.id === projectId);
-      if (project) {
-        activeProjectNameEl.innerText = project.name;
-        activeProjectBadge.classList.remove('hidden');
-        activeProjectBadge.classList.add('flex');
-      }
-      renderProjects();
-    }
-
-    function clearActiveProject() {
-      state.activeProjectId = null;
-      activeProjectBadge.classList.add('hidden');
-      activeProjectBadge.classList.remove('flex');
-      renderProjects();
-    }
-
-    function selectModel(modelId) {
-      state.activeModel = modelId;
-      document.querySelectorAll('.model-option').forEach(el => {
-        if (el.dataset.model === modelId) {
-          el.classList.add('bg-gemini-hover');
-          selectedModelNameEl.innerText = el.dataset.name;
-        } else {
-          el.classList.remove('bg-gemini-hover');
-        }
-      });
-      modelDropdown.classList.add('hidden');
-    }
-
-    function renderAttachmentChips() {
-      if (state.attachments.length === 0) {
-        attachmentBar.classList.add('hidden');
-        attachmentBar.classList.remove('flex');
-        attachmentBar.innerHTML = '';
-        return;
-      }
-      attachmentBar.classList.remove('hidden');
-      attachmentBar.classList.add('flex');
-      attachmentBar.innerHTML = '';
-
-      state.attachments.forEach((att, idx) => {
-        const chip = document.createElement('div');
-        chip.className = 'flex items-center gap-1.5 px-3 py-1 bg-gemini-card border border-white/10 rounded-full text-xs text-gray-200 shrink-0';
-        chip.innerHTML = `
-          <i data-lucide="paperclip" class="w-3 h-3 text-gemini-blue"></i>
-          <span>${att.name}</span>
-          <button onclick="removeAttachment(${idx})" class="hover:text-red-400 ml-1"><i data-lucide="x" class="w-3 h-3"></i></button>
-        `;
-        attachmentBar.appendChild(chip);
-      });
-      lucide.createIcons();
-    }
-
-    window.removeAttachment = function(index) {
-      state.attachments.splice(index, 1);
-      renderAttachmentChips();
-    };
-
-    function updateCharCount() {
-      const len = userPromptInput.value.length;
-      charCountEl.innerText = `${len} / 4000`;
-    }
-
-    function updateSendButtonState() {
-      const hasText = userPromptInput.value.trim().length > 0;
-      btnSendPrompt.disabled = !hasText || state.isGenerating;
-    }
-
-    // EVENT LISTENERS SETUP
-    function attachEventListeners() {
-      // Auto resize textarea
-      userPromptInput.addEventListener('input', () => {
-        userPromptInput.style.height = 'auto';
-        userPromptInput.style.height = (userPromptInput.scrollHeight) + 'px';
-        updateCharCount();
-        updateSendButtonState();
-      });
-
-      userPromptInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleSendPrompt();
-        }
-      });
-
-      btnSendPrompt.onclick = () => handleSendPrompt();
-
-      btnNewChat.onclick = () => createNewChat(true);
-      newChatTopBtn.onclick = () => createNewChat(true);
-
-      // Sidebar Collapse Toggles
-      toggleSidebarBtn.onclick = () => {
-        sidebar.classList.toggle('w-72');
-        sidebar.classList.toggle('w-16');
-        sidebar.querySelectorAll('.sidebar-label').forEach(el => el.classList.toggle('hidden'));
-      };
-
-      mobileMenuBtn.onclick = () => {
-        sidebar.classList.toggle('-translate-x-full');
-        sidebar.classList.toggle('fixed');
-        sidebar.classList.toggle('inset-y-0');
-        sidebar.classList.toggle('left-0');
-      };
-
-      // Search chats input listener
-      searchChatsInput.addEventListener('input', renderRecentChats);
-
-      // Model Switcher Dropdown
-      modelSelectorBtn.onclick = (e) => {
-        e.stopPropagation();
-        modelDropdown.classList.toggle('hidden');
-      };
-
-      document.addEventListener('click', () => {
-        modelDropdown.classList.add('hidden');
-      });
-
-      document.querySelectorAll('.model-option').forEach(option => {
-        option.onclick = (e) => {
-          e.stopPropagation();
-          selectModel(option.dataset.model);
-        };
-      });
-
-      btnClearProject.onclick = clearActiveProject;
-
-      // Suggestion Chips Click
-      document.querySelectorAll('.suggestion-card').forEach(card => {
-        card.onclick = () => {
-          const promptText = card.querySelector('p').innerText;
-          handleSendPrompt(promptText);
-        };
-      });
-
-      // File Input Attachments
-      fileInput.onchange = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(f => {
-          state.attachments.push({ name: f.name, size: f.size });
-        });
-        renderAttachmentChips();
-      };
-
-      // Voice Dictation Simulation
-      btnVoiceInput.onclick = () => {
-        state.isVoiceActive = !state.isVoiceActive;
-        if (state.isVoiceActive) {
-          recordingPulse.classList.remove('hidden');
-          btnVoiceInput.classList.add('text-red-400');
-          userPromptInput.placeholder = 'Listening... (Speak now)';
-          // Simulated speech insertion
-          setTimeout(() => {
-            if (state.isVoiceActive) {
-              userPromptInput.value += ' Explain how quantum computing works in simple terms.';
-              userPromptInput.dispatchEvent(new Event('input'));
-              btnVoiceInput.click(); // turn off
-            }
-          }, 3000);
-        } else {
-          recordingPulse.classList.add('hidden');
-          btnVoiceInput.classList.remove('text-red-400');
-          userPromptInput.placeholder = "Ask Gemini or type '/' for prompts...";
-        }
-      };
-
-      // Deep Think Quick Toggle
-      btnDeepThink.onclick = () => {
-        selectModel('gemini-2.0-thinking');
-        alert('Switched to Gemini 2.0 Thinking model.');
-      };
-
-      // Export Chat
-      btnExportChat.onclick = () => {
-        const activeChat = state.chats.find(c => c.id === state.activeChatId);
-        if (!activeChat || activeChat.messages.length === 0) {
-          alert('No chat content to export.');
-          return;
-        }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeChat, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `${activeChat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-      };
-
-      // Clear Chat
-      btnClearChat.onclick = () => {
-        const activeChat = state.chats.find(c => c.id === state.activeChatId);
-        if (activeChat && confirm('Are you sure you want to clear this conversation?')) {
-          activeChat.messages = [];
-          saveState();
-          renderMessages();
-        }
-      };
-
-      // Theme Toggle
-      btnThemeToggle.onclick = () => {
-        const html = document.documentElement;
-        if (html.classList.contains('dark')) {
-          html.classList.remove('dark');
-          themeIcon.setAttribute('data-lucide', 'sun');
-          themeText.innerText = 'Light Theme';
-        } else {
-          html.classList.add('dark');
-          themeIcon.setAttribute('data-lucide', 'moon');
-          themeText.innerText = 'Dark Theme';
-        }
-        lucide.createIcons();
-      };
-
-      // Project Modal Controls
-      btnOpenGemModal.onclick = () => gemModal.classList.remove('hidden');
-      closeGemModal.onclick = () => gemModal.classList.add('hidden');
-      cancelGemModal.onclick = () => gemModal.classList.add('hidden');
-
-      gemForm.onsubmit = (e) => {
-        e.preventDefault();
-        const name = document.getElementById('gem-name').value.trim();
-        const icon = document.getElementById('gem-icon').value;
-        const color = document.getElementById('gem-color').value;
-        const instructions = document.getElementById('gem-instructions').value.trim();
-
-        if (!name) return;
-
-        const newGem = {
-          id: 'gem_' + Date.now(),
-          name,
-          icon,
-          color,
-          instructions
-        };
-
-        state.projects.push(newGem);
-        saveState();
-        renderProjects();
-        setProjectActive(newGem.id);
-        gemModal.classList.add('hidden');
-        gemForm.reset();
-      };
-
-      // Settings Modal Controls
-      btnOpenSettings.onclick = () => {
-        apiKeyInput.value = state.settings.apiKey || '';
-        globalSystemPrompt.value = state.settings.globalPrompt || '';
-        settingsModal.classList.remove('hidden');
-      };
-      closeSettingsModal.onclick = () => settingsModal.classList.add('hidden');
-      saveSettingsBtn.onclick = () => {
-        state.settings.apiKey = apiKeyInput.value.trim();
-        state.settings.globalPrompt = globalSystemPrompt.value.trim();
-        saveState();
-        settingsModal.classList.add('hidden');
-        alert('Preferences saved successfully!');
-      };
-    }
-
-    // Start Application
-    window.onload = initApp;
-  </script>
+  <!-- Application JS -->
+  <script src="app.js"></script>
 </body>
 </html>
