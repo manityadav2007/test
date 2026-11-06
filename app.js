@@ -102,16 +102,14 @@ function cacheDOMElements() {
     activeProjectNameEl: document.getElementById('active-project-name'),
     btnClearProject: document.getElementById('btn-clear-project'),
     
-    welcomeView: document.getElementById('welcome-view'),
-    messagesFeed: document.getElementById('messages-feed'),
-    chatContainer: document.getElementById('chat-container'),
-    typingIndicator: document.getElementById('typing-indicator'),
+    welcomeView: document.getElementById('welcome-container'),
+    messagesContainer: document.getElementById('messages-container'),
     
     userPromptInput: document.getElementById('user-prompt-input'),
     btnSendPrompt: document.getElementById('btn-send-prompt'),
     charCountEl: document.getElementById('char-count'),
     fileInput: document.getElementById('file-input'),
-    attachmentBar: document.getElementById('attachment-preview-bar'),
+    attachmentBar: document.getElementById('attachment-bar'),
     btnVoiceInput: document.getElementById('btn-voice-input'),
     recordingPulse: document.getElementById('recording-pulse'),
     btnDeepThink: document.getElementById('btn-deep-think'),
@@ -377,15 +375,13 @@ function renderProjects() {
   state.projects.forEach(project => {
     const isSelected = state.activeProjectId === project.id;
     const btn = document.createElement('button');
-    btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${isSelected ? 'bg-gemini-card text-white border border-white/10 shadow-sm' : 'text-gemini-muted hover:bg-gemini-hover hover:text-white'}`;
-    btn.onclick = () => setProjectActive(project.id);
-
+    btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${!isSelected ? 'text-gray-300 hover:bg-gemini-hover hover:text-white' : 'bg-gemini-blue/20 text-gemini-accent border border-gemini-blue/30'}`;
+    btn.onclick = () => setProjectActive(project.id, true);
     btn.innerHTML = `
       <div class="flex items-center gap-2.5 truncate">
-        <i data-lucide="${project.icon || 'gem'}" class="w-4 h-4 ${project.color || 'text-gemini-blue'} shrink-0"></i>
+        <i data-lucide="${project.icon || 'folder'}" class="w-4 h-4 ${project.color || 'text-gemini-blue'} shrink-0"></i>
         <span class="truncate">${escapeHtml(project.name)}</span>
       </div>
-      ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-gemini-blue"></div>' : ''}
     `;
     DOM.projectsListEl.appendChild(btn);
   });
@@ -395,453 +391,317 @@ function renderProjects() {
 function renderRecentChats() {
   if (!DOM.recentChatsListEl) return;
   DOM.recentChatsListEl.innerHTML = '';
-  const filterTerm = (DOM.searchChatsInput?.value || '').toLowerCase().trim();
-  
-  let filtered = state.chats.filter(c => c.title.toLowerCase().includes(filterTerm));
-  
-  // Sort pinned items to the top
-  filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
-  if (filtered.length === 0) {
-    DOM.recentChatsListEl.innerHTML = `<div class="px-3 py-2 text-xs text-gray-500 italic">No history found</div>`;
+  const searchQuery = (DOM.searchChatsInput?.value || '').toLowerCase();
+  
+  const filtered = state.chats.filter(c => 
+    c.title.toLowerCase().includes(searchQuery) || 
+    c.messages.some(m => m.content.toLowerCase().includes(searchQuery))
+  );
+
+  const pinnedChats = filtered.filter(c => c.pinned);
+  const unpinnedChats = filtered.filter(c => !c.pinned);
+  const orderedChats = [...pinnedChats, ...unpinnedChats];
+
+  if (orderedChats.length === 0) {
+    DOM.recentChatsListEl.innerHTML = `<p class="px-3 text-xs text-gemini-muted italic">No chats found.</p>`;
     return;
   }
 
-  filtered.forEach(chat => {
-    const isActive = state.activeChatId === chat.id;
+  orderedChats.forEach(chat => {
+    const isActive = chat.id === state.activeChatId;
     const item = document.createElement('div');
-    item.className = `group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-colors ${isActive ? 'bg-gemini-hover text-white' : 'text-gemini-muted hover:bg-gemini-hover/60 hover:text-white'}`;
+    item.className = `group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${!isActive ? 'text-gray-300 hover:bg-gemini-sidebar hover:text-white' : 'bg-gemini-hover text-white font-medium shadow-sm'}`;
     item.onclick = () => switchChat(chat.id);
 
     item.innerHTML = `
-      <div class="flex items-center gap-2.5 truncate pr-2">
-        <i data-lucide="message-square" class="w-3.5 h-3.5 text-gray-500 shrink-0"></i>
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <i data-lucide="${chat.pinned ? 'pin' : 'message-square'}" class="w-3.5 h-3.5 ${chat.pinned ? 'text-amber-400' : 'text-gemini-muted'} shrink-0"></i>
         <span class="truncate">${escapeHtml(chat.title)}</span>
       </div>
-      <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button class="btn-pin p-1 hover:text-amber-400 ${chat.pinned ? 'text-amber-400 opacity-100' : ''}" title="Pin chat">
-          <i data-lucide="pin" class="w-3 h-3"></i>
+      <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+        <button title="${chat.pinned ? 'Unpin chat' : 'Pin chat'}" class="p-1 hover:text-amber-400 text-gemini-muted rounded" onclick="togglePinChat('${chat.id}', event)">
+          <i data-lucide="${chat.pinned ? 'pin-off' : 'pin'}" class="w-3 h-3"></i>
         </button>
-        <button class="btn-delete p-1 hover:text-red-400" title="Delete chat">
-          <i data-lucide="trash" class="w-3 h-3"></i>
+        <button title="Delete chat" class="p-1 hover:text-red-400 text-gemini-muted rounded" onclick="deleteChat('${chat.id}', event)">
+          <i data-lucide="trash-2" class="w-3 h-3"></i>
         </button>
       </div>
     `;
-
-    const pinBtn = item.querySelector('.btn-pin');
-    const delBtn = item.querySelector('.btn-delete');
-    pinBtn.onclick = (e) => togglePinChat(chat.id, e);
-    delBtn.onclick = (e) => deleteChat(chat.id, e);
-
     DOM.recentChatsListEl.appendChild(item);
   });
   updateLucideIcons();
 }
 
 function renderMessages() {
+  if (!DOM.messagesContainer) return;
+  
   const activeChat = state.chats.find(c => c.id === state.activeChatId);
+  
   if (!activeChat || activeChat.messages.length === 0) {
-    DOM.welcomeView.classList.remove('hidden');
-    DOM.messagesFeed.classList.add('hidden');
-    DOM.messagesFeed.innerHTML = '';
+    if (DOM.welcomeView) DOM.welcomeView.classList.remove('hidden');
+    const dynamicMsgs = DOM.messagesContainer.querySelectorAll('.chat-message-node');
+    dynamicMsgs.forEach(node => node.remove());
     return;
   }
 
-  DOM.welcomeView.classList.add('hidden');
-  DOM.messagesFeed.classList.remove('hidden');
-  DOM.messagesFeed.innerHTML = '';
+  if (DOM.welcomeView) DOM.welcomeView.classList.add('hidden');
 
-  activeChat.messages.forEach((msg, index) => {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `flex flex-col space-y-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`;
-    
+  const dynamicMsgs = DOM.messagesContainer.querySelectorAll('.chat-message-node');
+  dynamicMsgs.forEach(node => node.remove());
+
+  activeChat.messages.forEach(msg => {
     if (msg.role === 'user') {
-      let attachmentMarkup = '';
-      if (msg.attachments && msg.attachments.length > 0) {
-        attachmentMarkup = `<div class="flex flex-wrap gap-2 mb-2">` +
-          msg.attachments.map(a => `<div class="text-xs bg-black/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-white/10"><i data-lucide="file-text" class="w-3.5 h-3.5 text-gemini-blue"></i><span>${escapeHtml(a.name)}</span></div>`).join('') +
-          `</div>`;
-      }
-
-      msgDiv.innerHTML = `
-        <div class="max-w-xl bg-gemini-card border border-white/10 rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-gray-100 shadow-sm">
-          ${attachmentMarkup}
-          <p class="whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.content)}</p>
-        </div>
-        <div class="flex items-center gap-2 text-[10px] text-gemini-muted pr-1">
-          <span>You</span>
-          <span>•</span>
-          <button onclick="window.editUserMessage(${index})" class="hover:text-white transition-colors">Edit</button>
-        </div>
-      `;
+      appendUserMessageUI(msg.content, msg.attachments, false);
     } else {
-      // AI Response Message
-      let thinkingBlock = '';
-      if (msg.thinking) {
-        thinkingBlock = `
-          <details class="mb-3 bg-gemini-sidebar/80 border border-gemini-purple/20 rounded-xl p-3 text-xs text-gemini-muted group">
-            <summary class="cursor-pointer font-medium flex items-center gap-2 text-gemini-purple select-none">
-              <i data-lucide="brain" class="w-4 h-4"></i>
-              Thinking Process (${msg.thinkingTime || '1.2s'})
-            </summary>
-            <div class="mt-2 pt-2 border-t border-white/5 space-y-1 font-mono text-[11px] text-gray-400 whitespace-pre-wrap">
-              ${escapeHtml(msg.thinking)}
-            </div>
-          </details>
-        `;
-      }
-
-      const htmlContent = (typeof marked !== 'undefined') ? marked.parse(msg.content) : escapeHtml(msg.content);
-
-      msgDiv.innerHTML = `
-        <div class="flex items-start gap-3 w-full max-w-3xl">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemini-blue via-gemini-purple to-gemini-pink flex items-center justify-center shrink-0 shadow-md">
-            <i data-lucide="sparkles" class="w-4.5 h-4.5 text-white"></i>
-          </div>
-          <div class="flex-1 overflow-hidden space-y-2">
-            ${thinkingBlock}
-            <div class="markdown-body text-sm text-gray-200 font-normal leading-relaxed overflow-x-auto">
-              ${htmlContent}
-            </div>
-            <div class="flex items-center gap-2 pt-2 text-gemini-muted opacity-80 hover:opacity-100 transition-opacity">
-              <button onclick="window.copyMessageContent('${msg.id}')" title="Copy text" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              </button>
-              <button onclick="window.regenerateResponse(${index})" title="Regenerate" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-              </button>
-              <button title="Good response" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
-              </button>
-              <button title="Bad response" class="p-1.5 hover:bg-gemini-hover rounded-lg hover:text-white transition-colors">
-                <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    DOM.messagesFeed.appendChild(msgDiv);
-  });
-
-  // Attach code copy buttons to formatted code blocks
-  attachCodeCopyButtons();
-  updateLucideIcons();
-  scrollToBottom();
-}
-
-function attachCodeCopyButtons() {
-  if (!DOM.messagesFeed) return;
-  DOM.messagesFeed.querySelectorAll('pre').forEach(pre => {
-    if (!pre.querySelector('.copy-code-btn')) {
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'copy-code-btn absolute top-2 right-2 px-2 py-1 bg-gemini-card hover:bg-gemini-hover border border-white/10 text-[10px] text-gemini-muted hover:text-white rounded-md transition-colors flex items-center gap-1';
-      copyBtn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copy`;
-      copyBtn.onclick = () => {
-        const codeText = pre.querySelector('code')?.innerText || '';
-        navigator.clipboard.writeText(codeText);
-        copyBtn.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-green-400"></i> Copied!`;
-        setTimeout(() => {
-          copyBtn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copy`;
-          updateLucideIcons();
-        }, 2000);
-        updateLucideIcons();
-      };
-      pre.appendChild(copyBtn);
+      appendAiMessageUI(msg.content, msg.model, false);
     }
   });
+
+  DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
 }
 
-function scrollToBottom() {
-  if (DOM.chatContainer) {
-    DOM.chatContainer.scrollTop = DOM.chatContainer.scrollHeight;
-  }
-}
-
-// AI Generation Engine (API + Simulation Fallback)
-async function handleSendPrompt(customText = null) {
-  const text = customText || DOM.userPromptInput.value.trim();
+function handleSendPrompt(customText = null) {
+  const text = customText || DOM.userPromptInput?.value.trim();
   if (!text || state.isGenerating) return;
 
   const activeChat = state.chats.find(c => c.id === state.activeChatId);
   if (!activeChat) return;
 
-  // If conversation is brand new, set friendly title
   if (activeChat.messages.length === 0) {
-    activeChat.title = text.length > 28 ? text.substring(0, 28) + '...' : text;
-    renderRecentChats();
+    activeChat.title = text.slice(0, 32) + (text.length > 32 ? '...' : '');
   }
 
-  // Append User Message
-  const userMsg = {
-    id: 'msg_' + Date.now(),
-    role: 'user',
-    content: text,
-    attachments: [...state.attachments]
-  };
-  activeChat.messages.push(userMsg);
-
-  // Reset input state
-  DOM.userPromptInput.value = '';
-  DOM.userPromptInput.style.height = 'auto';
+  const attachmentsCopy = [...state.attachments];
   state.attachments = [];
   renderAttachmentChips();
-  updateCharCount();
+
+  const userMsg = { role: 'user', content: text, attachments: attachmentsCopy, timestamp: new Date().toISOString() };
+  activeChat.messages.push(userMsg);
+  saveState();
+
+  if (DOM.welcomeView) DOM.welcomeView.classList.add('hidden');
+  appendUserMessageUI(text, attachmentsCopy, true);
+
+  if (DOM.userPromptInput) {
+    DOM.userPromptInput.value = '';
+    DOM.userPromptInput.style.height = 'auto';
+    updateCharCount();
+    updateSendButtonState();
+  }
+
+  streamAiResponse(text);
+}
+
+function appendUserMessageUI(content, attachments = [], autoScroll = true) {
+  const node = document.createElement('div');
+  node.className = 'chat-message-node flex justify-end max-w-4xl mx-auto my-4';
+  
+  let attachmentMarkup = '';
+  if (attachments && attachments.length > 0) {
+    attachmentMarkup = `<div class="flex flex-wrap gap-1.5 mb-2">` + 
+      attachments.map(a => `<span class="inline-flex items-center gap-1 text-[11px] bg-black/20 text-gray-200 px-2.5 py-1 rounded-md border border-white/10"><i data-lucide="paperclip" class="w-3 h-3 text-gemini-accent"></i>${escapeHtml(a.name)}</span>`).join('') +
+      `</div>`;
+  }
+
+  node.innerHTML = `
+    <div class="bg-gemini-card border border-white/10 rounded-2xl rounded-tr-sm px-5 py-3.5 max-w-[85%] text-sm text-gray-100 shadow-md">
+      ${attachmentMarkup}
+      <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(content)}</div>
+    </div>
+  `;
+  DOM.messagesContainer.appendChild(node);
+  updateLucideIcons();
+  if (autoScroll) DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+}
+
+function appendAiMessageUI(content, modelName, autoScroll = true) {
+  const node = document.createElement('div');
+  node.className = 'chat-message-node flex items-start gap-4 max-w-4xl mx-auto my-6';
+  
+  let htmlContent = content;
+  if (typeof marked !== 'undefined') {
+    try {
+      htmlContent = marked.parse(content);
+    } catch (e) {
+      htmlContent = escapeHtml(content);
+    }
+  }
+
+  node.innerHTML = `
+    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemini-blue via-gemini-purple to-gemini-pink flex items-center justify-center text-white shrink-0 shadow-md mt-1">
+      <i data-lucide="sparkles" class="w-4 h-4"></i>
+    </div>
+    <div class="flex-1 overflow-hidden">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="text-xs font-semibold text-gray-200">Gemini</span>
+        <span class="text-[10px] text-gemini-muted bg-white/5 px-2 py-0.5 rounded-full border border-white/5 font-mono">${escapeHtml(modelName || state.activeModel)}</span>
+      </div>
+      <div class="markdown-body text-sm text-gray-200 leading-relaxed">
+        ${htmlContent}
+      </div>
+    </div>
+  `;
+  DOM.messagesContainer.appendChild(node);
+  updateLucideIcons();
+  if (autoScroll) DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+  return node;
+}
+
+function streamAiResponse(promptText) {
+  state.isGenerating = true;
   updateSendButtonState();
 
-  renderMessages();
-  showTypingIndicator(true);
-  state.isGenerating = true;
+  const activeChat = state.chats.find(c => c.id === state.activeChatId);
+  const selectedModel = state.activeModel;
 
-  // Generate thinking metadata if experimental thinking engine is selected
-  const isThinkingModel = state.activeModel === 'gemini-2.0-thinking';
-  const thinkingContent = isThinkingModel ? generateThinkingStepProcess(text) : null;
+  const node = document.createElement('div');
+  node.className = 'chat-message-node flex items-start gap-4 max-w-4xl mx-auto my-6';
+  node.innerHTML = `
+    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemini-blue via-gemini-purple to-gemini-pink flex items-center justify-center text-white shrink-0 shadow-md mt-1">
+      <i data-lucide="sparkles" class="w-4 h-4 animate-spin"></i>
+    </div>
+    <div class="flex-1 overflow-hidden">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="text-xs font-semibold text-gray-200">Gemini</span>
+        <span class="text-[10px] text-gemini-muted bg-white/5 px-2 py-0.5 rounded-full border border-white/5 font-mono">${escapeHtml(selectedModel)}</span>
+      </div>
+      <div class="ai-stream-content markdown-body text-sm text-gray-200 leading-relaxed">
+        <div class="flex items-center gap-1.5 py-2">
+          <span class="shimmer-dot"></span>
+          <span class="shimmer-dot"></span>
+          <span class="shimmer-dot"></span>
+        </div>
+      </div>
+    </div>
+  `;
+  DOM.messagesContainer.appendChild(node);
+  updateLucideIcons();
+  DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+
+  const responseText = generateSimulatedResponse(promptText);
+  const contentEl = node.querySelector('.ai-stream-content');
   
-  // Fetch generated AI response text
-  const generatedReply = await fetchAIResponse(text);
-
-  showTypingIndicator(false);
-
-  // Append AI Assistant Message
-  const aiMsg = {
-    id: 'msg_' + (Date.now() + 1),
-    role: 'assistant',
-    content: '',
-    thinking: thinkingContent,
-    thinkingTime: (Math.random() * 0.8 + 0.8).toFixed(1) + 's'
-  };
-
-  activeChat.messages.push(aiMsg);
-  renderMessages();
-
-  // Typewriter Streaming Animation Effect
-  const targetMsgIndex = activeChat.messages.length - 1;
-  const targetMsg = activeChat.messages[targetMsgIndex];
-  const words = generatedReply.split(' ');
-  
-  for (let i = 0; i < words.length; i++) {
-    targetMsg.content += (i === 0 ? '' : ' ') + words[i];
-    renderMessages();
-    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 20) + 12));
-  }
-
-  state.isGenerating = false;
-  saveState();
-}
-
-function generateThinkingStepProcess(prompt) {
-  return `1. Deconstruct user intent: "${prompt.substring(0, 45)}..."
-2. Persona check: ${state.activeProjectId ? 'Active Gem Persona injected into context' : 'Default Gemini Pro baseline reasoning'}.
-3. Context synthesis: Evaluating code architecture, computational efficiency, and edge case safety.
-4. Drafting response with formatted code snippets, structured markdown tables, and key takeaways.
-5. Verification pass completed.`;
-}
-
-async function fetchAIResponse(prompt) {
-  // Real Google Gemini API Call if User Key Provided
-  if (state.settings.apiKey) {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${state.settings.apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-      const data = await response.json();
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        return data.candidates[0].content.parts[0].text;
+  let currentIdx = 0;
+  const chunkLength = 4;
+  const interval = setInterval(() => {
+    currentIdx += chunkLength;
+    const partial = responseText.slice(0, currentIdx);
+    
+    if (typeof marked !== 'undefined') {
+      try {
+        contentEl.innerHTML = marked.parse(partial);
+      } catch (e) {
+        contentEl.innerText = partial;
       }
-    } catch (e) {
-      console.warn('Custom API call failed, defaulting to intelligent local engine:', e);
+    } else {
+      contentEl.innerText = partial;
     }
-  }
 
-  // Built-in Realistic Mock AI Engine
-  await new Promise(r => setTimeout(r, 900));
-  const lower = prompt.toLowerCase();
-  let projectPrefix = '';
-  
-  if (state.activeProjectId) {
-    const proj = state.projects.find(p => p.id === state.activeProjectId);
-    if (proj) projectPrefix = `**[${proj.name} Activated]** `;
-  }
+    DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
 
-  if (lower.includes('python') || lower.includes('code') || lower.includes('script') || lower.includes('scrape')) {
-    return `${projectPrefix}Here is a production-grade Python solution designed with clean modularity, async capabilities, and robust error handling:
-
-\
-python
-import asyncio
-import aiohttp
-from bs4 import BeautifulSoup
-import logging
-
-logging.basicConfig(level=logging.INFO)
-
-async def fetch_page(session: aiohttp.ClientSession, url: str) -> str:
-    try:
-        async with session.get(url, timeout=10) as response:
-            response.raise_for_status()
-            return await response.text()
-    except Exception as e:
-        logging.error(f"Failed to fetch {url}: {e}")
-        return ""
-
-async function main():
-    url = "https://news.ycombinator.com"
-    async with aiohttp.ClientSession() as session:
-        html = await fetch_page(session, url)
-        soup = BeautifulSoup(html, 'html.parser')
-        headlines = [h.get_text() for h in soup.find_all('span', class_='titleline')[:5]]
-        print("Top Hacker News Headlines:", headlines)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-\
-
-### Key Architecture Highlights:
-- **Asynchronous I/O:** Utilizes 
-`aiohttp
-` and 
-`asyncio
-` for non-blocking HTTP requests.
-- **Type Annotations:** Full Python 3.12+ type hinting for IDE autocomplete safety.
-- **Resilience:** Graceful timeout handling with structured standard logging.`;
-  }
-
-  if (lower.includes('brainstorm') || lower.includes('startup') || lower.includes('design') || lower.includes('name')) {
-    return `${projectPrefix}Here are 4 high-impact startup and product concepts tailored for your initiative:
-
-| Concept | Core Value Proposition | Primary Audience |
-| :--- | :--- | :--- |
-| **Aura Canvas** | AI-driven responsive UI layout generator with live preview | Product Designers |
-| **Synthetix Code** | Autonomous code refactoring & security audit agent | Tech Leads & CTOs |
-| **Verve Flow** | Micro-animations & visual dynamics engine for modern web apps | Frontend Developers |
-| **Pulse Metric** | Predictive user churn analytics powered by Gemini Flash | Growth Marketers |
-
-### Strategic Execution Matrix:
-1. **Validation:** Deploy a 1-page landing page featuring interactive micro-demos.
-2. **MVP Scope:** Focus strictly on real-time preview and export capability.
-3. **Monetization:** Usage-tiered API key credits combined with team seat subscriptions.`;
-  }
-
-  if (lower.includes('quantum') || lower.includes('transformer') || lower.includes('explain') || lower.includes('how')) {
-    return `${projectPrefix}### Understanding Transformer Architecture & Attention Mechanisms
-
-At the core of models like **Gemini** is the **Multi-Head Self-Attention Mechanism**, which computes structural relationships across all tokens in parallel:
-
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
-
-#### Core Pillars:
-1. **Query ($Q$):** Vector matrix representing current target tokens.
-2. **Key ($K$):** Vector matrix offering contextual reference points.
-3. **Value ($V$):** High-dimensional representations of token content.
-
-This parallel processing allows Gemini to maintain coherent context across massive input windows without sequential bottlenecks!`;
-  }
-
-  return `${projectPrefix}I've processed your query using **${state.activeModel}**.
-
-Here is a structured summary addressing your prompt:
-
-- **Modularity:** Ensure clear isolation between state management and visual rendering views.
-- **Performance:** Utilize efficient event delegation and responsive CSS variable tokens.
-- **User Experience:** Offer subtle visual feedback during async streaming operations.
-
-Let me know if you would like to generate code examples or refine any specific section!`;
-}
-
-function showTypingIndicator(show) {
-  if (!DOM.typingIndicator) return;
-  if (show) {
-    DOM.typingIndicator.classList.remove('hidden');
-  } else {
-    DOM.typingIndicator.classList.add('hidden');
-  }
-  scrollToBottom();
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// User Interactive Callback Bindings
-window.editUserMessage = function(index) {
-  const activeChat = state.chats.find(c => c.id === state.activeChatId);
-  if (!activeChat) return;
-  const msg = activeChat.messages[index];
-  if (msg && msg.role === 'user') {
-    DOM.userPromptInput.value = msg.content;
-    DOM.userPromptInput.focus();
-    DOM.userPromptInput.dispatchEvent(new Event('input'));
-  }
-};
-
-window.regenerateResponse = function(index) {
-  const activeChat = state.chats.find(c => c.id === state.activeChatId);
-  if (!activeChat) return;
-  const lastUserMsg = activeChat.messages[index - 1];
-  if (lastUserMsg && lastUserMsg.role === 'user') {
-    activeChat.messages = activeChat.messages.slice(0, index);
-    handleSendPrompt(lastUserMsg.content);
-  }
-};
-
-window.copyMessageContent = function(msgId) {
-  const activeChat = state.chats.find(c => c.id === state.activeChatId);
-  if (!activeChat) return;
-  const msg = activeChat.messages.find(m => m.id === msgId);
-  if (msg) {
-    navigator.clipboard.writeText(msg.content);
-    alert('Message text copied to clipboard!');
-  }
-};
-
-function setProjectActive(projectId, saveAndSwitch = true) {
-  if (state.activeProjectId === projectId) {
-    clearActiveProject(saveAndSwitch);
-    return;
-  }
-  state.activeProjectId = projectId;
-  const project = state.projects.find(p => p.id === projectId);
-  if (project && DOM.activeProjectBadge && DOM.activeProjectNameEl) {
-    DOM.activeProjectNameEl.innerText = project.name;
-    DOM.activeProjectBadge.classList.remove('hidden');
-    DOM.activeProjectBadge.classList.add('flex');
-  }
-  
-  if (saveAndSwitch) {
-    const activeChat = state.chats.find(c => c.id === state.activeChatId);
-    if (activeChat) {
-      activeChat.projectId = projectId;
-      saveState();
+    if (currentIdx >= responseText.length) {
+      clearInterval(interval);
+      state.isGenerating = false;
+      updateSendButtonState();
+      
+      if (activeChat) {
+        activeChat.messages.push({
+          role: 'model',
+          content: responseText,
+          model: selectedModel,
+          timestamp: new Date().toISOString()
+        });
+        saveState();
+        renderRecentChats();
+      }
     }
-  }
-  renderProjects();
+  }, 20);
 }
 
-function clearActiveProject(saveAndSwitch = true) {
-  state.activeProjectId = null;
-  if (DOM.activeProjectBadge) {
-    DOM.activeProjectBadge.classList.add('hidden');
-    DOM.activeProjectBadge.classList.remove('flex');
+function generateSimulatedResponse(promptText) {
+  const activeProject = state.projects.find(p => p.id === state.activeProjectId);
+  const projectContext = activeProject ? `[Active Gem Context: ${activeProject.name}]\n` : '';
+
+  const lower = promptText.toLowerCase();
+
+  if (lower.includes('code') || lower.includes('react') || lower.includes('javascript') || lower.includes('python')) {
+    return `${projectContext}Here is a clean, production-ready implementation tailored to your request:
+
+\`\`\`javascript
+// Modular React Dashboard Component
+import React, { useState, useEffect } from 'react';
+
+export default function AnalyticsWidget({ title = "Live Metrics" }) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulated real-time streaming pipeline
+    const timer = setTimeout(() => {
+      setData([
+        { id: 1, metric: 'Active Sessions', value: '42,890', growth: '+14.2%' },
+        { id: 2, metric: 'Conversion Rate', value: '3.84%', growth: '+0.8%' },
+        { id: 3, metric: 'API Latency', value: '18ms', growth: '-5.1%' }
+      ]);
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <div class="p-4 text-gray-400">Loading live telemetry...</div>;
+
+  return (
+    <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {data.map(item => (
+          <div key={item.id} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <p className="text-xs text-slate-400 font-medium">{item.metric}</p>
+            <p className="text-2xl font-bold text-white mt-1">{item.value}</p>
+            <span className="text-xs font-semibold text-emerald-400 mt-2 block">{item.growth} vs last week</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+\`\`\`
+
+### Key Features:
+1. **Asynchronous Telemetry Stream**: Clean state initialization with zero layout shift.
+2. **Accessible Styling**: Styled with modern Tailwind utility classes.
+3. **Type-Safe Props**: Optimized for high-throughput dashboard renders.`;
   }
-  if (saveAndSwitch) {
-    const activeChat = state.chats.find(c => c.id === state.activeChatId);
-    if (activeChat) {
-      activeChat.projectId = null;
-      saveState();
-    }
+
+  if (lower.includes('explain') || lower.includes('what is')) {
+    return `${projectContext}### Architectural Insight & Analysis
+
+**Gemini 1.5 Architecture** introduces native long-context window capability (up to 2 Million tokens) combined with multimodal understanding across text, audio, video, and complex codebases.
+
+#### Core Mechanics:
+- **Transformer Decoder Pipeline**: Enables retrieval of precise data points from millions of tokens of context with >99% recall efficiency.
+- **Sparse Mixture of Experts (MoE)**: Routing requests dynamically to specialized sub-networks to achieve lower latency and high efficiency.
+- **Unified Multimodal Tokenization**: Process code structures, media signals, and language embeddings natively in a single latent space.`;
   }
-  renderProjects();
+
+  return `${projectContext}I have processed your query using **${state.activeModel}**.
+
+Here is a structured overview addressing your point:
+
+1. **Strategic Optimization**: Ensure your workflow maintains high performance across all edge clients.
+2. **Scalable Design Patterns**: Keep component state isolated and leverage modern ES6+ paradigms.
+3. **Extensibility**: Custom Gems allow you to persist custom system prompts and domain expertise.
+
+Let me know if you would like me to generate code examples, dive deeper into implementation details, or draft technical specs!`;
 }
 
+// Model & Project Selector Handlers
 function selectModel(modelId, saveAndSwitch = true) {
   state.activeModel = modelId;
-  document.querySelectorAll('.model-option').forEach(el => {
+  
+  const options = document.querySelectorAll('.model-option');
+  options.forEach(el => {
     if (el.dataset.model === modelId) {
       el.classList.add('bg-gemini-hover');
       if (DOM.selectedModelNameEl) DOM.selectedModelNameEl.innerText = el.dataset.name;
@@ -855,6 +715,44 @@ function selectModel(modelId, saveAndSwitch = true) {
     const activeChat = state.chats.find(c => c.id === state.activeChatId);
     if (activeChat) {
       activeChat.model = modelId;
+      saveState();
+    }
+  }
+}
+
+function setProjectActive(projectId, updateChat = true) {
+  state.activeProjectId = projectId;
+  const project = state.projects.find(p => p.id === projectId);
+  
+  if (project && DOM.activeProjectBadge && DOM.activeProjectNameEl) {
+    DOM.activeProjectNameEl.innerText = project.name;
+    DOM.activeProjectBadge.classList.remove('hidden');
+    DOM.activeProjectBadge.classList.add('flex');
+  }
+
+  renderProjects();
+
+  if (updateChat) {
+    const activeChat = state.chats.find(c => c.id === state.activeChatId);
+    if (activeChat) {
+      activeChat.projectId = projectId;
+      saveState();
+    }
+  }
+}
+
+function clearActiveProject(updateChat = true) {
+  state.activeProjectId = null;
+  if (DOM.activeProjectBadge) {
+    DOM.activeProjectBadge.classList.add('hidden');
+    DOM.activeProjectBadge.classList.remove('flex');
+  }
+  renderProjects();
+
+  if (updateChat) {
+    const activeChat = state.chats.find(c => c.id === state.activeChatId);
+    if (activeChat) {
+      activeChat.projectId = null;
       saveState();
     }
   }
@@ -902,22 +800,35 @@ function updateSendButtonState() {
   DOM.btnSendPrompt.disabled = !hasText || state.isGenerating;
 }
 
+// Utility: HTML Escaping
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Comprehensive Event Listener Binding
 function attachEventListeners() {
   // Auto resizing input textarea
-  DOM.userPromptInput.addEventListener('input', () => {
-    DOM.userPromptInput.style.height = 'auto';
-    DOM.userPromptInput.style.height = (DOM.userPromptInput.scrollHeight) + 'px';
-    updateCharCount();
-    updateSendButtonState();
-  });
+  if (DOM.userPromptInput) {
+    DOM.userPromptInput.addEventListener('input', () => {
+      DOM.userPromptInput.style.height = 'auto';
+      DOM.userPromptInput.style.height = (DOM.userPromptInput.scrollHeight) + 'px';
+      updateCharCount();
+      updateSendButtonState();
+    });
 
-  DOM.userPromptInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendPrompt();
-    }
-  });
+    DOM.userPromptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendPrompt();
+      }
+    });
+  }
 
   if (DOM.btnSendPrompt) DOM.btnSendPrompt.onclick = () => handleSendPrompt();
   if (DOM.btnNewChat) DOM.btnNewChat.onclick = () => createNewChat(true);
@@ -991,11 +902,11 @@ function attachEventListeners() {
     DOM.btnVoiceInput.onclick = toggleVoiceDictation;
   }
 
-  // Quick Deep Thinking Model Toggle
+  // Quick Fast Model Toggle
   if (DOM.btnDeepThink) {
     DOM.btnDeepThink.onclick = () => {
-      selectModel('gemini-2.0-thinking', true);
-      alert('Engine set to Gemini 2.0 Thinking (Experimental logic enabled).');
+      selectModel('gemini-1.5-flash', true);
+      alert('Engine set to Gemini 1.5 Flash (Fast Model enabled).');
     };
   }
 
