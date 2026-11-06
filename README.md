@@ -1,25 +1,11 @@
-# Instagram & Telegram Login Authentication Suite
+# Nature in Motion — 3D Interactive Sanctuary
 
-A responsive, modern web interface featuring Instagram login and a seamlessly integrated Telegram Web login redirect experience.
+A breathtaking, high-performance 3D interactive landing page featuring a procedural bonsai tree and a continuous falling-leaves particle physics system.
 
 ## Features
 
-- **Continue to Telegram Action**: A highlighted, branded "Continue to Telegram" button on the main Instagram login card.
-- **Dedicated Telegram Web Login Page (`telegram.html`)**:
-  - Sleek Telegram dark theme UI styling (#0e1621 & #17212b).
-  - **Dual Sign-in Options**: Seamless tab switching between Phone Number login and QR Code login.
-  - **Interactive Country Selector**: Automatically populates country dial codes.
-  - **Verification Code Simulation**: Interactive 5-digit PIN input with focus auto-advance and countdown timer.
-  - **Responsive Design**: Fits perfectly across all mobile devices, tablets, and desktop displays.
-- **Seamless Navigation**: Includes one-click back navigation between Instagram and Telegram screens.
-
-## File Structure
-
-- `index.html`: Instagram login landing page featuring the "Continue to Telegram" button.
-- `telegram.html`: Full-featured Telegram Web sign-in portal.
-- `app.js`: Interactivity, form flow simulation, OTP verification, and UI state toggling.
-- `style.css`: Custom animations, keyframes, scrollbar aesthetics, and component enhancements.
-
-## How to Run
-
-Simply open `index.html` in any modern web browser or serve via a local web server (e.g. Live Server).
+- **Procedural 3D Bonsai Tree**: Built with organic branching geometry and glowing emerald foliage clusters.
+- **Falling-Leaves Particle System**: 200+ smooth leaf particles with wind drift physics, rotation, and continuous looping reset.
+- **Cinematic Lighting & Dark Sky**: Warm ambient light paired with moonlight casting soft shadows over the ground and trunk.
+- **Interactive Controls**: Parallax camera movement on mouse move, wind intensity toggle, and smooth cinematic camera zoom.
+- **Modern Glassmorphism UI**: Tailwind CSS overlay with frosted glass panels and emerald glowing accents.
