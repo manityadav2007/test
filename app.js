@@ -1,294 +1,529 @@
-// 3D Interactive Falling-Leaves Tree Simulation
+// Sakura 3D Sanctuary - Production Grade Three.js Application
 
-const container = document.getElementById('canvas-container');
-let scene, camera, renderer, treeGroup, leaves = [];
-let mouseX = 0, mouseY = 0;
-let targetX = 0, targetY = 0;
-let windowHalfX = window.innerWidth / 2;
-let windowHalfY = window.innerHeight / 2;
-let windIntensity = 1.0;
+class SakuraSanctuary {
+  constructor() {
+    this.container = document.getElementById('webgl-canvas');
+    this.loaderEl = document.getElementById('loader');
+    this.progressBar = document.getElementById('load-progress');
+    this.loadStatus = document.getElementById('load-status');
+    this.heroContent = document.getElementById('hero-content');
+    
+    this.densityBtn = document.getElementById('density-btn');
+    this.densityText = document.getElementById('density-text');
+    this.soundBtn = document.getElementById('sound-btn');
+    this.soundIconOn = document.getElementById('sound-icon-on');
+    this.soundIconOff = document.getElementById('sound-icon-off');
 
-function init() {
-    // Scene setup
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color('#030712');
-    scene.fog = new THREE.FogExp2('#030712', 0.015);
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    
+    this.petalDensityMode = 'high'; // high: 2000, medium: 1000, low: 400
+    this.maxPetals = 2000;
+    this.audioEnabled = false;
+    this.audioCtx = null;
+    this.analyser = null;
+    this.windGain = null;
 
-    // Camera setup
-    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 4, 18);
+    this.mouse = new THREE.Vector2(0, 0);
+    this.targetMouse = new THREE.Vector2(0, 0);
+    this.raycaster = new THREE.Raycaster();
+    this.scrollProgress = 0;
+    this.targetScrollProgress = 0;
 
-    // Renderer setup
-    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    container.appendChild(renderer.domElement);
+    this.clock = new THREE.Clock();
+    this.init();
+  }
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x1e293b, 1.5);
-    scene.add(ambientLight);
+  async init() {
+    this.updateProgress(20, 'Initializing WebGL context...');
+    await this.delay(150);
 
-    const moonLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
-    moonLight.position.set(15, 25, 10);
-    moonLight.castShadow = true;
-    moonLight.shadow.mapSize.width = 2048;
-    moonLight.shadow.mapSize.height = 2048;
-    scene.add(moonLight);
+    // Scene & Camera
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color('#0b070e');
+    this.scene.fog = new THREE.FogExp2('#150d1a', 0.025);
 
-    const fillLight = new THREE.DirectionalLight(0x10b981, 0.8);
-    fillLight.position.set(-15, 10, -10);
-    scene.add(fillLight);
+    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 100);
+    this.camera.position.set(0, 4, 18);
 
-    // Environment ground
-    const groundGeo = new THREE.PlaneGeometry(100, 100);
+    this.updateProgress(40, 'Building atmospheric lighting...');
+    await this.delay(150);
+
+    // Renderer
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.container, antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setSize(this.width, this.height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.1;
+
+    this.setupLighting();
+
+    this.updateProgress(65, 'Procedurally growing Sakura tree...');
+    await this.delay(200);
+
+    this.createEnvironment();
+    this.createTree();
+
+    this.updateProgress(85, 'Spawning falling petals particle system...');
+    await this.delay(150);
+
+    this.createPetals();
+
+    this.updateProgress(100, 'Ready.');
+    await this.delay(300);
+
+    this.hideLoader();
+    this.bindEvents();
+    this.animate();
+  }
+
+  updateProgress(percent, text) {
+    if (this.progressBar) this.progressBar.style.width = percent + '%';
+    if (this.loadStatus) this.loadStatus.textContent = text;
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  hideLoader() {
+    if (this.loaderEl) {
+      gsap.to(this.loaderEl, {
+        opacity: 0,
+        duration: 0.8,
+        onComplete: () => {
+          this.loaderEl.style.display = 'none';
+          gsap.to(this.heroContent, {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out'
+          });
+        }
+      });
+    }
+  }
+
+  setupLighting() {
+    // Ambient golden/pink glow
+    const ambientLight = new THREE.AmbientLight(0x2d1a24, 1.5);
+    this.scene.add(ambientLight);
+
+    // Warm sunset directional sun
+    const sunLight = new THREE.DirectionalLight(0xffeedd, 2.5);
+    sunLight.position.set(12, 16, 10);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 40;
+    const d = 12;
+    sunLight.shadow.camera.left = -d;
+    sunLight.shadow.camera.right = d;
+    sunLight.shadow.camera.top = d;
+    sunLight.shadow.camera.bottom = -d;
+    sunLight.shadow.bias = -0.0005;
+    this.scene.add(sunLight);
+
+    // Soft pink rim light from opposite side
+    const rimLight = new THREE.DirectionalLight(0xdc6b9d, 1.2);
+    rimLight.position.set(-15, 8, -10);
+    this.scene.add(rimLight);
+
+    // Upward glow from grass
+    const groundGlow = new THREE.PointLight(0x4a1f33, 2, 15);
+    groundGlow.position.set(0, 0.5, 0);
+    this.scene.add(groundGlow);
+  }
+
+  createEnvironment() {
+    // Ground terrain with fallen petals carpet
+    const groundGeo = new THREE.PlaneGeometry(60, 60, 32, 32);
+    groundGeo.rotateX(-Math.PI / 2);
+    
+    // Displace vertices slightly for organic undulation
+    const pos = groundGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      const y = Math.sin(x * 0.2) * Math.cos(z * 0.2) * 0.3;
+      pos.setY(i, y);
+    }
+    groundGeo.computeVertexNormals();
+
     const groundMat = new THREE.MeshStandardMaterial({
-        color: 0x050b14,
-        roughness: 0.8,
-        metalness: 0.2
+      color: 0x141018,
+      roughness: 0.9,
+      metalness: 0.1,
+      flatShading: true
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -3;
     ground.receiveShadow = true;
-    scene.add(ground);
+    this.scene.add(ground);
 
-    // Build Procedural Bonsai Tree
-    createTree();
+    // Distant blurred trees / mountains for depth
+    const distantGroup = new THREE.Group();
+    const treeMat = new THREE.MeshBasicMaterial({ color: 0x120a17, fog: true });
+    for (let i = 0; i < 25; i++) {
+      const angle = (i / 25) * Math.PI * 2;
+      const radius = 25 + Math.random() * 10;
+      const height = 4 + Math.random() * 6;
+      const treeGeo = new THREE.ConeGeometry(2 + Math.random() * 2, height, 5);
+      const tree = new THREE.Mesh(treeGeo, treeMat);
+      tree.position.set(Math.cos(angle) * radius, height / 2 - 1, Math.sin(angle) * radius);
+      distantGroup.add(tree);
+    }
+    this.scene.add(distantGroup);
+  }
 
-    // Create Falling Leaves Particle System
-    createLeavesSystem();
+  createTree() {
+    this.treeGroup = new THREE.Group();
+    this.scene.add(this.treeGroup);
 
-    // Event Listeners
-    window.addEventListener('resize', onWindowResize, false);
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
-
-    // Interactive button action
-    document.getElementById('explore-btn').addEventListener('click', () => {
-        // Smooth camera cinematic dolly-in
-        gsapCameraMove();
+    // Trunk & Branches (Procedural Recursive Generation)
+    const barkMat = new THREE.MeshStandardMaterial({
+      color: 0x241915,
+      roughness: 0.85,
+      metalness: 0.05,
+      bumpScale: 0.05
     });
 
-    const windBtn = document.getElementById('toggle-wind');
-    windBtn.addEventListener('click', () => {
-        if (windIntensity === 1.0) {
-            windIntensity = 2.5;
-            windBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Wind: Strong</span>';
-        } else if (windIntensity === 2.5) {
-            windIntensity = 0.2;
-            windBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span><span>Wind: Gentle</span>';
-        } else {
-            windIntensity = 1.0;
-            windBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Wind: Moderate</span>';
-        }
-    });
-
-    animate();
-}
-
-function createTree() {
-    treeGroup = new THREE.Group();
-
-    // Trunk Material
-    const trunkMat = new THREE.MeshStandardMaterial({
-        color: 0x1f1712,
-        roughness: 0.9,
-        metalness: 0.1
-    });
-
-    // Main Trunk
-    const trunkGeo = new THREE.CylinderGeometry(0.6, 1.2, 7, 8);
-    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-    trunk.position.y = 0.5;
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
-    treeGroup.add(trunk);
-
-    // Secondary branches
-    createBranch(0, 3, 0, 2.5, 0.4, Math.PI / 6, Math.PI / 4, trunkMat, 3);
-    createBranch(0, 3.5, 0, 2.8, 0.35, -Math.PI / 5, -Math.PI / 3, trunkMat, 3);
-    createBranch(0, 4.5, 0, 2.2, 0.28, Math.PI / 4, Math.PI / 2, trunkMat, 2);
-    createBranch(0, 5.2, 0, 1.8, 0.2, -Math.PI / 6, Math.PI, trunkMat, 2);
-
-    treeGroup.position.y = -3;
-    scene.add(treeGroup);
-}
-
-function createBranch(x, y, z, length, radius, angleX, angleZ, material, depth) {
-    if (depth <= 0) return;
-
-    const branchGeo = new THREE.CylinderGeometry(radius * 0.7, radius, length, 6);
-    branchGeo.translate(0, length / 2, 0);
-    const branch = new THREE.Mesh(branchGeo, material);
+    const branchesData = [];
     
-    branch.position.set(x, y, z);
-    branch.rotation.x = angleX;
-    branch.rotation.z = angleZ;
-    branch.castShadow = true;
-    branch.receiveShadow = true;
-    
-    treeGroup.add(branch);
+    // Recursive branch generator
+    const generateBranch = (startPos, direction, length, radius, level) => {
+      if (level > 4 || length < 0.4) return;
 
-    // Tip position for sub-branches or foliage cluster
-    const tipY = y + Math.cos(angleX) * length;
-    const tipX = x + Math.sin(angleZ) * length;
-    const tipZ = z + Math.cos(angleZ) * length;
+      const endPos = startPos.clone().add(direction.clone().multiplyScalar(length));
+      
+      // Create cylinder segment
+      const segGeo = new THREE.CylinderGeometry(radius * 0.7, radius, length, 6);
+      segGeo.translate(0, length / 2, 0);
+      segGeo.rotateX(Math.PI / 2);
+      
+      const segMesh = new THREE.Mesh(segGeo, barkMat);
+      segMesh.position.copy(startPos);
+      segMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.clone().normalize());
+      segMesh.castShadow = true;
+      segMesh.receiveShadow = true;
+      this.treeGroup.add(segMesh);
 
-    if (depth > 1) {
-        createBranch(tipX, tipY, tipZ, length * 0.7, radius * 0.65, angleX + 0.3, angleZ + 0.5, material, depth - 1);
-        createBranch(tipX, tipY, tipZ, length * 0.7, radius * 0.65, angleX - 0.4, angleZ - 0.5, material, depth - 1);
+      // Save tip positions for blossom clusters
+      if (level >= 3) {
+        branchesData.push(endPos.clone());
+      }
+
+      // Spawn sub-branches
+      const count = level === 1 ? 3 : 2;
+      for (let i = 0; i < count; i++) {
+        const newDir = direction.clone();
+        // Add twist and randomness
+        newDir.x += (Math.random() - 0.5) * 0.8;
+        newDir.y += (Math.random() - 0.2) * 0.5;
+        newDir.z += (Math.random() - 0.5) * 0.8;
+        newDir.normalize();
+
+        generateBranch(endPos, newDir, length * (0.65 + Math.random() * 0.15), radius * 0.65, level + 1);
+      }
+    };
+
+    // Root trunk
+    const rootStart = new THREE.Vector3(0, 0, 0);
+    const initialDir = new THREE.Vector3(0.1, 1, 0.05).normalize();
+    generateBranch(rootStart, initialDir, 4.5, 0.7, 1);
+
+    // Blossom Clusters using InstancedMesh
+    this.createBlossomClusters(branchesData);
+  }
+
+  createBlossomClusters(tips) {
+    // Create flower petal shape
+    const flowerShape = new THREE.Shape();
+    const petalsCount = 5;
+    for (let i = 0; i < petalsCount; i++) {
+      const angle = (i / petalsCount) * Math.PI * 2;
+      const rx = Math.cos(angle) * 0.15;
+      const ry = Math.sin(angle) * 0.15;
+      if (i === 0) flowerShape.moveTo(rx, ry);
+      else flowerShape.bezierCurveTo(rx * 1.5, ry * 1.5, rx * 0.8, ry * 0.8, rx, ry);
+    }
+
+    const extrudeSettings = { depth: 0.01, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.01, bevelThickness: 0.01 };
+    const petalGeo = new THREE.ExtrudeGeometry(flowerShape, extrudeSettings);
+    petalGeo.center();
+
+    const flowerMat = new THREE.MeshStandardMaterial({
+      color: 0xffd1dc,
+      roughness: 0.4,
+      metalness: 0.1,
+      side: THREE.DoubleSide
+    });
+
+    // Generate instances around tips
+    const totalInstances = tips.length * 12;
+    this.blossomInstanced = new THREE.InstancedMesh(petalGeo, flowerMat, totalInstances);
+    this.blossomInstanced.castShadow = true;
+
+    const dummy = new THREE.Object3D();
+    let index = 0;
+
+    tips.forEach(tip => {
+      for (let i = 0; i < 12; i++) {
+        const offset = new THREE.Vector3(
+          (Math.random() - 0.5) * 1.8,
+          (Math.random() - 0.5) * 1.8,
+          (Math.random() - 0.5) * 1.8
+        );
+        dummy.position.copy(tip).add(offset);
+        dummy.rotation.set(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI
+        );
+        const scale = 0.6 + Math.random() * 0.8;
+        dummy.scale.set(scale, scale, scale);
+        dummy.updateMatrix();
+        this.blossomInstanced.setMatrixAt(index++, dummy.matrix);
+      }
+    });
+
+    this.blossomInstanced.instanceMatrix.needsUpdate = true;
+    this.treeGroup.add(this.blossomInstanced);
+  }
+
+  createPetals() {
+    // Falling Petals particle system
+    const petalShape = new THREE.PlaneGeometry(0.18, 0.28);
+    const petalMat = new THREE.MeshStandardMaterial({
+      color: 0xffe6ee,
+      roughness: 0.5,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95
+    });
+
+    this.petalCount = this.maxPetals;
+    this.petalMesh = new THREE.InstancedMesh(petalShape, petalMat, this.petalCount);
+    this.scene.add(this.petalMesh);
+
+    // Petal physics attributes
+    this.petalData = [];
+    const dummy = new THREE.Object3D();
+
+    for (let i = 0; i < this.petalCount; i++) {
+      const data = {
+        position: new THREE.Vector3(
+          (Math.random() - 0.5) * 12,
+          Math.random() * 9 + 2,
+          (Math.random() - 0.5) * 12
+        ),
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.02,
+          -Math.random() * 0.03 - 0.01,
+          (Math.random() - 0.5) * 0.02
+        ),
+        rotation: new THREE.Euler(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI
+        ),
+        rotSpeed: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.04,
+          (Math.random() - 0.5) * 0.04,
+          (Math.random() - 0.5) * 0.04
+        ),
+        life: Math.random(),
+        maxLife: 1.0 + Math.random() * 1.5,
+        scale: 0.7 + Math.random() * 0.6
+      };
+      this.petalData.push(data);
+
+      dummy.position.copy(data.position);
+      dummy.rotation.copy(data.rotation);
+      dummy.scale.set(data.scale, data.scale, data.scale);
+      dummy.updateMatrix();
+      this.petalMesh.setMatrixAt(i, dummy.matrix);
+    }
+    this.petalMesh.instanceMatrix.needsUpdate = true;
+  }
+
+  bindEvents() {
+    window.addEventListener('resize', () => this.onWindowResize());
+    window.addEventListener('mousemove', (e) => this.onMouseMove(e));
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        this.onMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+      }
+    }, { passive: true });
+
+    window.addEventListener('wheel', (e) => {
+      this.targetScrollProgress += e.deltaY * 0.001;
+      this.targetScrollProgress = Math.max(0, Math.min(1.5, this.targetScrollProgress));
+    }, { passive: true });
+
+    // UI Toggles
+    this.density0 = false;
+    this.densityBtn.addEventListener('click', () => {
+      if (this.petalDensityMode === 'high') {
+        this.petalDensityMode = 'medium';
+        this.maxPetals = 1000;
+        this.densityText.textContent = 'Petals: Med (1000)';
+      } else if (this.petalDensityMode === 'medium') {
+        this.petalDensityMode = 'low';
+        this.maxPetals = 400;
+        this.densityText.textContent = 'Petals: Low (400)';
+      } else {
+        this.petalDensityMode = 'high';
+        this.maxPetals = 2000;
+        this.densityText.textContent = 'Petals: High (2000)';
+      }
+      this.petalMesh.count = this.maxPetals;
+    });
+
+    this.soundBtn.addEventListener('click', () => {
+      this.audioEnabled = !this.audioEnabled;
+      if (this.audioEnabled) {
+        this.initAudio();
+        this.soundIconOn.classList.remove('hidden');
+        this.soundIconOff.classList.add('hidden');
+      } else {
+        if (this.audioCtx) this.audioCtx.suspend();
+        this.soundIconOn.classList.add('hidden');
+        this.soundIconOff.classList.remove('hidden');
+      }
+    });
+  }
+
+  initAudio() {
+    if (!this.audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.audioCtx = new AudioContext();
+
+      // Create pink noise generator for wind sound
+      const bufferSize = 4096;
+      const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = this.audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const filter = this.audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 350;
+      filter.Q.value = 1.0;
+
+      this.windGain = this.audioCtx.createGain();
+      this.windGain.gain.value = 0.15;
+
+      whiteNoise.connect(filter);
+      filter.connect(this.windGain);
+      this.windGain.connect(this.audioCtx.destination);
+      whiteNoise.start(0);
     } else {
-        // Add foliage cluster
-        createFoliageCluster(tipX, tipY, tipZ);
+      this.audioCtx.resume();
     }
-}
+  }
 
-function createFoliageCluster(x, y, z) {
-    const clusterGeo = new THREE.DodecahedronGeometry(1.4, 1);
-    const clusterMat = new THREE.MeshStandardMaterial({
-        color: 0x10b981,
-        roughness: 0.6,
-        metalness: 0.1,
-        flatShading: true
-    });
-    const cluster = new THREE.Mesh(clusterGeo, clusterMat);
-    cluster.position.set(x, y, z);
-    cluster.castShadow = true;
-    treeGroup.add(cluster);
-}
+  onWindowResize() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.camera.aspect = this.width / this.height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(this.width, this.height);
+  }
 
-function createLeavesSystem() {
-    const leafCount = 200;
-    const leafGeo = new THREE.PlaneGeometry(0.35, 0.35);
+  onMouseMove(e) {
+    this.targetMouse.x = (e.clientX / this.width) * 2 - 1;
+    this.targetMouse.y = -(e.clientY / this.height) * 2 + 1;
+  }
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+
+    const delta = this.clock.getDelta();
+    const time = this.clock.getElapsedTime();
+
+    // Smooth mouse interpolation
+    this.mouse.lerp(this.targetMouse, 0.05);
+    this.scrollProgress += (this.targetScrollProgress - this.scrollProgress) * 0.05;
+
+    // Camera motion & Parallax
+    const baseCamZ = 18;
+    const baseCamY = 4;
+    const targetZ = baseCamZ - this.scrollProgress * 8;
+    const targetY = baseCamY + this.scrollProgress * 5;
     
-    // Leaf variations in color (Emerald, Teal, Lime, Mint)
-    const colors = [0x10b981, 0x34d399, 0x059669, 0x6ee7b7, 0x2dd4bf];
+    this.camera.position.x += (this.mouse.x * 2.5 - this.camera.position.x) * 0.05;
+    this.camera.position.y += (targetY + this.mouse.y * 1.5 - this.camera.position.y) * 0.05;
+    this.camera.position.z += (targetZ - this.camera.position.z) * 0.05;
+    this.camera.lookAt(0, 3 + this.scrollProgress * 2, 0);
 
-    for (let i = 0; i < leafCount; i++) {
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const leafMat = new THREE.MeshStandardMaterial({
-            color: color,
-            side: THREE.DoubleSide,
-            roughness: 0.5,
-            transparent: true,
-            opacity: 0.9
-        });
-
-        const leaf = new THREE.Mesh(leafGeo, leafMat);
-        
-        resetLeafPosition(leaf, true);
-        
-        scene.add(leaf);
-        leaves.push(leaf);
+    // Tree & Blossom gentle sway
+    if (this.treeGroup) {
+      this.treeGroup.rotation.y = Math.sin(time * 0.5) * 0.02;
+      this.treeGroup.rotation.z = Math.cos(time * 0.4) * 0.01;
     }
-}
 
-function resetLeafPosition(leaf, initial = false) {
-    // Scatter around canopy bounds
-    const radius = Math.random() * 3.5;
-    const theta = Math.random() * Math.PI * 2;
-    
-    leaf.position.x = Math.cos(theta) * radius;
-    leaf.position.y = initial ? (Math.random() * 5 - 1) : (6 + Math.random() * 2);
-    leaf.position.z = Math.sin(theta) * radius;
-
-    leaf.rotation.set(
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-        Math.random() * Math.PI
+    // Update Falling Petals Physics
+    const dummy = new THREE.Object3D();
+    const windForce = new THREE.Vector3(
+      Math.sin(time * 0.8) * 0.015 + 0.01,
+      -0.015,
+      Math.cos(time * 0.6) * 0.015
     );
 
-    // Custom physics properties stored directly on mesh
-    leaf.userData = {
-        velocity: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.02,
-            -0.03 - Math.random() * 0.03,
-            (Math.random() - 0.5) * 0.02
-        ),
-        rotationSpeed: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.05,
-            (Math.random() - 0.5) * 0.05,
-            (Math.random() - 0.5) * 0.05
-        ),
-        amplitude: 0.5 + Math.random() * 1.5,
-        frequency: 1.0 + Math.random() * 2.0,
-        offset: Math.random() * Math.PI * 2
-    };
-}
+    for (let i = 0; i < this.maxPetals; i++) {
+      const data = this.petalData[i];
 
-function onWindowResize() {
-    windowHalfX = window.innerWidth / 2;
-    windowHalfY = window.innerHeight / 2;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
+      // Wind & Mouse repulsion drift
+      const distToMouse = data.position.distanceTo(new THREE.Vector3(this.mouse.x * 5, this.mouse.y * 5 + 3, 0));
+      if (distToMouse < 4) {
+        const pushDir = data.position.clone().sub(new THREE.Vector3(this.mouse.x * 5, this.mouse.y * 5 + 3, 0)).normalize();
+        data.velocity.add(pushDir.multiplyScalar(0.005));
+      }
 
-function onDocumentMouseMove(event) {
-    mouseX = (event.clientX - windowHalfX) / windowHalfX;
-    mouseY = (event.clientY - windowHalfY) / windowHalfY;
-}
+      data.velocity.add(windForce);
+      data.velocity.clampLength(0.001, 0.08);
 
-function gsapCameraMove() {
-    let startTime = null;
-    const startPos = camera.position.clone();
-    const targetPos = new THREE.Vector3(0, 1, 8);
-    const duration = 2000;
+      data.position.add(data.velocity);
 
-    function animateCam(currentTime) {
-        if (!startTime) startTime = currentTime;
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
+      data.rotation.x += data.rotSpeed.x;
+      data.rotation.y += data.rotSpeed.y;
+      data.rotation.z += data.rotSpeed.z;
 
-        camera.position.lerpVectors(startPos, targetPos, easeProgress);
+      // Reset when touching ground or out of bounds
+      if (data.position.y < 0.1 || Math.abs(data.position.x) > 15 || Math.abs(data.position.z) > 15) {
+        data.position.set(
+          (Math.random() - 0.5) * 10,
+          Math.random() * 4 + 7,
+          (Math.random() - 0.5) * 10
+        );
+        data.velocity.set(
+          (Math.random() - 0.5) * 0.02,
+          -Math.random() * 0.03 - 0.01,
+          (Math.random() - 0.5) * 0.02
+        );
+      }
 
-        if (progress < 1) {
-            requestAnimationFrame(animateCam);
-        }
+      dummy.position.copy(data.position);
+      dummy.rotation.copy(data.rotation);
+      dummy.scale.set(data.scale, data.scale, data.scale);
+      dummy.updateMatrix();
+
+      this.petalMesh.setMatrixAt(i, dummy.matrix);
     }
-    requestAnimationFrame(animateCam);
+    this.petalMesh.instanceMatrix.needsUpdate = true;
+
+    this.renderer.render(this.scene, this.camera);
+  }
 }
 
-function animate(timestamp = 0) {
-    requestAnimationFrame(animate);
-
-    const time = timestamp * 0.001;
-
-    // Smooth camera parallax based on mouse position
-    targetX = mouseX * 2.5;
-    targetY = -mouseY * 1.5 + 4;
-    camera.position.x += (targetX - camera.position.x) * 0.05;
-    camera.position.y += (targetY - camera.position.y) * 0.05;
-    camera.lookAt(0, 1, 0);
-
-    // Rotate tree very slowly for cinematic presence
-    if (treeGroup) {
-        treeGroup.rotation.y = Math.sin(time * 0.3) * 0.15;
-    }
-
-    // Update falling leaves physics
-    leaves.forEach(leaf => {
-        // Apply wind drift sine waves
-        const windEffect = Math.sin(time * leaf.userData.frequency + leaf.userData.offset) * 0.03 * windIntensity;
-        
-        leaf.position.x += leaf.userData.velocity.x + windEffect;
-        leaf.position.y += leaf.userData.velocity.y;
-        leaf.position.z += leaf.userData.velocity.z;
-
-        // Spin leaf
-        leaf.rotation.x += leaf.userData.rotationSpeed.x;
-        leaf.rotation.y += leaf.userData.rotationSpeed.y;
-        leaf.rotation.z += leaf.userData.rotationSpeed.z;
-
-        // Reset when leaf reaches ground
-        if (leaf.position.y < -3) {
-            resetLeafPosition(leaf);
-        }
-    });
-
-    renderer.render(scene, camera);
-}
-
-init();
+window.addEventListener('DOMContentLoaded', () => {
+  new SakuraSanctuary();
+});
