@@ -626,74 +626,57 @@ function generateSimulatedResponse(promptText) {
   const lower = promptText.toLowerCase();
 
   if (lower.includes('code') || lower.includes('react') || lower.includes('javascript') || lower.includes('python')) {
-    return `${projectContext}Here is a clean, production-ready implementation tailored to your request:
-
-\`\`\`javascript
-// Modular React Dashboard Component
-import React, { useState, useEffect } from 'react';
-
-export default function AnalyticsWidget({ title = "Live Metrics" }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulated real-time streaming pipeline
-    const timer = setTimeout(() => {
-      setData([
-        { id: 1, metric: 'Active Sessions', value: '42,890', growth: '+14.2%' },
-        { id: 2, metric: 'Conversion Rate', value: '3.84%', growth: '+0.8%' },
-        { id: 3, metric: 'API Latency', value: '18ms', growth: '-5.1%' }
-      ]);
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) return <div class="p-4 text-gray-400">Loading live telemetry...</div>;
-
-  return (
-    <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {data.map(item => (
-          <div key={item.id} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-            <p className="text-xs text-slate-400 font-medium">{item.metric}</p>
-            <p className="text-2xl font-bold text-white mt-1">{item.value}</p>
-            <span className="text-xs font-semibold text-emerald-400 mt-2 block">{item.growth} vs last week</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-\`\`\`
-
-### Key Features:
-1. **Asynchronous Telemetry Stream**: Clean state initialization with zero layout shift.
-2. **Accessible Styling**: Styled with modern Tailwind utility classes.
+    return `${projectContext}Here is a clean, production-ready implementation tailored to your request:\n\n\
+```javascript\n\
+// Modular React Dashboard Component\n\
+import React, { useState, useEffect } from 'react';\n\
+\n\
+export default function AnalyticsWidget({ title = \"Live Metrics\" }) {\n\
+  const [data, setData] = useState([]);\n\
+  const [loading, setLoading] = useState(true);\n\
+\n\
+  useEffect(() => {\n\
+    // Simulated real-time streaming pipeline\n\
+    const timer = setTimeout(() => {\n\
+      setData([\n\
+        { id: 1, metric: 'Active Sessions', value: '42,890', growth: '+14.2%' },\n\
+        { id: 2, metric: 'Conversion Rate', value: '3.84%', growth: '+0.8%' },\n\
+        { id: 3, metric: 'API Latency', value: '18ms', growth: '-5.1%' }\n\
+      ]);\n\
+      setLoading(false);\n\
+    }, 800);\n\
+    return () => clearTimeout(timer);\n\
+  }, []);\n\
+\n\
+  if (loading) return <div class=\"p-4 text-gray-400\">Loading live telemetry...</div>;\n\
+\n\
+  return (\n\
+    <div className=\"p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl\">\n\
+      <h3 className=\"text-lg font-semibold text-white mb-4\">{title}</h3>\n\
+      <div className=\"grid grid-cols-1 md:grid-cols-3 gap-4\">\n\
+        {data.map(item => (\n\
+          <div key={item.id} className=\"p-4 bg-slate-800/50 rounded-xl border border-slate-700/50\">\n\
+            <p className=\"text-xs text-slate-400 font-medium\">{item.metric}</p>\n\
+            <p className=\"text-2xl font-bold text-white mt-1\">{item.value}</p>\n\
+            <span className=\"text-xs font-semibold text-emerald-400 mt-2 block\">{item.growth} vs last week</span>\n\
+          </div>\n\
+        ))}\n\
+      </div>\n\
+    </div>\n\
+  );\n\
+}\n\
+```\n\n\
+### Key Features:\n\
+1. **Asynchronous Telemetry Stream**: Clean state initialization with zero layout shift.\n\
+2. **Accessible Styling**: Styled with modern Tailwind utility classes.\n\
 3. **Type-Safe Props**: Optimized for high-throughput dashboard renders.`;
   }
 
   if (lower.includes('explain') || lower.includes('what is')) {
-    return `${projectContext}### Architectural Insight & Analysis
-
-**Gemini 1.5 Architecture** introduces native long-context window capability (up to 2 Million tokens) combined with multimodal understanding across text, audio, video, and complex codebases.
-
-#### Core Mechanics:
-- **Transformer Decoder Pipeline**: Enables retrieval of precise data points from millions of tokens of context with >99% recall efficiency.
-- **Sparse Mixture of Experts (MoE)**: Routing requests dynamically to specialized sub-networks to achieve lower latency and high efficiency.
-- **Unified Multimodal Tokenization**: Process code structures, media signals, and language embeddings natively in a single latent space.`;
+    return `${projectContext}### Architectural Insight & Analysis\n\n**Gemini 1.5 Architecture** introduces native long-context window capability (up to 2 Million tokens) combined with multimodal understanding across text, audio, video, and complex codebases.\n\n#### Core Mechanics:\n- **Transformer Decoder Pipeline**: Enables retrieval of precise data points from millions of tokens of context with >99% recall efficiency.\n- **Sparse Mixture of Experts (MoE)**: Routing requests dynamically to specialized sub-networks to achieve lower latency and high efficiency.\n- **Unified Multimodal Tokenization**: Process code structures, media signals, and language embeddings natively in a single latent space.`;
   }
 
-  return `${projectContext}I have processed your query using **${state.activeModel}**.
-
-Here is a structured overview addressing your point:
-
-1. **Strategic Optimization**: Ensure your workflow maintains high performance across all edge clients.
-2. **Scalable Design Patterns**: Keep component state isolated and leverage modern ES6+ paradigms.
-3. **Extensibility**: Custom Gems allow you to persist custom system prompts and domain expertise.
-
-Let me know if you would like me to generate code examples, dive deeper into implementation details, or draft technical specs!`;
+  return `${projectContext}I have processed your query using **${state.activeModel}**.\n\nHere is a structured overview addressing your point:\n\n1. **Strategic Optimization**: Ensure your workflow maintains high performance across all edge clients.\n2. **Scalable Design Patterns**: Keep component state isolated and leverage modern ES6+ paradigms.\n3. **Extensibility**: Custom Gems allow you to persist custom system prompts and domain expertise.\n\nLet me know if you would like me to generate code examples, dive deeper into implementation details, or draft technical specs!`;
 }
 
 // Model & Project Selector Handlers
@@ -906,7 +889,7 @@ function attachEventListeners() {
   if (DOM.btnDeepThink) {
     DOM.btnDeepThink.onclick = () => {
       selectModel('gemini-1.5-flash', true);
-      alert('Engine set to Gemini 1.5 Flash (Fast Model (v2) enabled).');
+      alert('Engine set to Gemini 1.5 Flash (Fast Model (v3) enabled).');
     };
   }
 
