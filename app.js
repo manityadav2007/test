@@ -906,7 +906,7 @@ function attachEventListeners() {
   if (DOM.btnDeepThink) {
     DOM.btnDeepThink.onclick = () => {
       selectModel('gemini-1.5-flash', true);
-      alert('Engine set to Gemini 1.5 Flash (Fast Model enabled).');
+      alert('Engine set to Gemini 1.5 Flash (Fast Model (v2) enabled).');
     };
   }
 
